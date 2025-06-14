@@ -1,0 +1,15 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# tech stack
+This rule provides standards for tech stack, ensuring consistent coding, styling and animations:
+
+- **language**: typescript, TSX
+- **package manager**: pnpm
+- **styling**: tailwind, shadcn
+- **animation**: framer motion
+- **frontend framework**: tanstack start
+- **backend framework**: tanstack start
+- **database**: in memory mocked

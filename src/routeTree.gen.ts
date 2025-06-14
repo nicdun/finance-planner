@@ -48,6 +48,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/__tests__/landing-page/test': {
+      id: '/__tests__/landing-page/test'
+      path: ''
+      fullPath: '/landing-page/test'
+      preLoaderRoute: unknown
+      parentRoute: typeof rootRouteImport
+    }
+    '/__tests__/index/test': {
+      id: '/__tests__/index/test'
+      path: ''
+      fullPath: '/index/test'
+      preLoaderRoute: unknown
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
