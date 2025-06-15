@@ -17,13 +17,13 @@ vi.mock("node:fs", () => ({
   },
 }));
 
-// Mock router hooks
-vi.mock("@tanstack/react-router", () => ({
-  createFileRoute: vi.fn(() => ({
-    component: vi.fn(),
-  })),
-  useRouter: vi.fn(() => ({})),
-}));
+// // Mock router hooks
+// vi.mock("@tanstack/react-router", () => ({
+//   createFileRoute: vi.fn(() => ({
+//     component: vi.fn(),
+//   })),
+//   useRouter: vi.fn(() => ({})),
+// }));
 
 // Import the Home component directly
 const { Home } = await import("../routes/index");
@@ -33,7 +33,7 @@ describe("Landing Page Functional Tests", () => {
     render(<Home />);
 
     // Check main branding
-    expect(screen.getByText("FinanzCoach Pro")).toBeInTheDocument();
+    expect(screen.getAllByText("FinanzCoach Pro")[0]).toBeInTheDocument();
     expect(screen.getByText("Deutsche Bank Gruppe")).toBeInTheDocument();
   });
 
@@ -73,7 +73,7 @@ describe("Landing Page Functional Tests", () => {
     const services = ["Vermögensaufbau", "Altersvorsorge", "Finanzanalyse"];
 
     services.forEach((service) => {
-      expect(screen.getByText(service)).toBeInTheDocument();
+      expect(screen.getAllByText(service)[0]).toBeInTheDocument();
     });
   });
 

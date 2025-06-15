@@ -1,0 +1,181 @@
+import {
+  Account,
+  Transaction,
+  Budget,
+  FinancialGoal,
+  MonthlyData,
+} from "./types";
+
+export const mockAccounts: Account[] = [
+  {
+    id: "1",
+    name: "Girokonto",
+    type: "checking",
+    balance: 3250.75,
+    currency: "EUR",
+    iban: "DE89 3704 0044 0532 0130 00",
+  },
+  {
+    id: "2",
+    name: "Sparkonto",
+    type: "savings",
+    balance: 15420.5,
+    currency: "EUR",
+    iban: "DE89 3704 0044 0532 0130 01",
+  },
+  {
+    id: "3",
+    name: "Kreditkarte",
+    type: "credit",
+    balance: -1250.3,
+    currency: "EUR",
+  },
+  {
+    id: "4",
+    name: "Depot",
+    type: "investment",
+    balance: 28750.8,
+    currency: "EUR",
+  },
+];
+
+export const mockTransactions: Transaction[] = [
+  {
+    id: "1",
+    accountId: "1",
+    amount: 3200.0,
+    description: "Gehalt - Senacor Technologies AG",
+    category: "Einkommen",
+    date: "2024-01-01",
+    type: "income",
+  },
+  {
+    id: "2",
+    accountId: "1",
+    amount: -850.0,
+    description: "Miete",
+    category: "Wohnen",
+    date: "2024-01-02",
+    type: "expense",
+  },
+  {
+    id: "3",
+    accountId: "1",
+    amount: -120.5,
+    description: "REWE Supermarkt",
+    category: "Lebensmittel",
+    date: "2024-01-03",
+    type: "expense",
+  },
+  {
+    id: "4",
+    accountId: "1",
+    amount: -45.9,
+    description: "Tankstelle Shell",
+    category: "Transport",
+    date: "2024-01-04",
+    type: "expense",
+  },
+  {
+    id: "5",
+    accountId: "1",
+    amount: -89.99,
+    description: "Strom - E.ON",
+    category: "Nebenkosten",
+    date: "2024-01-05",
+    type: "expense",
+  },
+];
+
+export const mockBudgets: Budget[] = [
+  {
+    id: "1",
+    category: "Lebensmittel",
+    budgetAmount: 400,
+    spentAmount: 285.5,
+    period: "monthly",
+    color: "#10b981",
+  },
+  {
+    id: "2",
+    category: "Transport",
+    budgetAmount: 200,
+    spentAmount: 165.9,
+    period: "monthly",
+    color: "#3b82f6",
+  },
+  {
+    id: "3",
+    category: "Unterhaltung",
+    budgetAmount: 150,
+    spentAmount: 89.5,
+    period: "monthly",
+    color: "#8b5cf6",
+  },
+  {
+    id: "4",
+    category: "Kleidung",
+    budgetAmount: 100,
+    spentAmount: 125.0,
+    period: "monthly",
+    color: "#ef4444",
+  },
+  {
+    id: "5",
+    category: "Gesundheit",
+    budgetAmount: 80,
+    spentAmount: 45.2,
+    period: "monthly",
+    color: "#f59e0b",
+  },
+];
+
+export const mockGoals: FinancialGoal[] = [
+  {
+    id: "1",
+    title: "Notgroschen",
+    targetAmount: 10000,
+    currentAmount: 7500,
+    targetDate: "2024-12-31",
+    category: "Sicherheit",
+  },
+  {
+    id: "2",
+    title: "Urlaub 2024",
+    targetAmount: 3000,
+    currentAmount: 1850,
+    targetDate: "2024-07-01",
+    category: "Reisen",
+  },
+  {
+    id: "3",
+    title: "Neues Auto",
+    targetAmount: 25000,
+    currentAmount: 8500,
+    targetDate: "2025-06-01",
+    category: "Transport",
+  },
+  {
+    id: "4",
+    title: "Eigenkapital Immobilie",
+    targetAmount: 50000,
+    currentAmount: 15000,
+    targetDate: "2026-12-31",
+    category: "Immobilien",
+  },
+];
+
+export const mockMonthlyData: MonthlyData[] = [
+  { month: "Jan", income: 3200, expenses: 2150, savings: 1050 },
+  { month: "Feb", income: 3200, expenses: 2280, savings: 920 },
+  { month: "Mär", income: 3200, expenses: 2050, savings: 1150 },
+  { month: "Apr", income: 3200, expenses: 2320, savings: 880 },
+  { month: "Mai", income: 3200, expenses: 2180, savings: 1020 },
+  { month: "Jun", income: 3200, expenses: 2400, savings: 800 },
+  { month: "Jul", income: 3200, expenses: 2650, savings: 550 },
+  { month: "Aug", income: 3200, expenses: 2100, savings: 1100 },
+  { month: "Sep", income: 3200, expenses: 2250, savings: 950 },
+  { month: "Okt", income: 3200, expenses: 2180, savings: 1020 },
+  { month: "Nov", income: 3200, expenses: 2350, savings: 850 },
+  { month: "Dez", income: 3200, expenses: 2500, savings: 700 },
+];
