@@ -1,5 +1,7 @@
 import { createRootRoute, Outlet, HeadContent, Scripts, createFileRoute, lazyRouteComponent, RouterProvider, createRouter as createRouter$1 } from '@tanstack/react-router';
 import { jsx, jsxs } from 'react/jsx-runtime';
+import { useContext, createContext, useState, useEffect } from 'react';
+import { createClient } from '@supabase/supabase-js';
 import * as fs from 'node:fs';
 import { Slot } from '@radix-ui/react-slot';
 import { cva } from 'class-variance-authority';
@@ -2543,9 +2545,9 @@ async function loadVirtualModule(id) {
     case VIRTUAL_MODULES.routeTree:
       return await Promise.resolve().then(() => routeTree_gen);
     case VIRTUAL_MODULES.startManifest:
-      return await import('./_tanstack-start-manifest_v-zfeVdvLP.mjs');
+      return await import('./_tanstack-start-manifest_v-B7Xo7C5D.mjs');
     case VIRTUAL_MODULES.serverFnManifest:
-      return await import('./_tanstack-start-server-fn-manifest_v-BR8qYGCR.mjs');
+      return await import('./_tanstack-start-server-fn-manifest_v-Cppclm6U.mjs');
     default:
       throw new Error(`Unknown virtual module: ${id}`);
   }
@@ -3016,6 +3018,146 @@ const defaultStreamHandler = defineHandlerCallback(
     );
   }
 );
+const supabaseUrl = "https://xrfomcynxqlarazjmkuw.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhyZm9tY3lueHFsYXJhempta3V3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4NzM4NjgsImV4cCI6MjA2NTQ0OTg2OH0.3LESJuYQhkdp4tSJAfxlkBJvunkfFk_tYC5vcwZKbog";
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const auth = {
+  // Sign up with email and password
+  async signUp(email, password) {
+    var _a;
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password
+    });
+    return {
+      user: data.user ? {
+        id: data.user.id,
+        email: data.user.email,
+        username: (_a = data.user.user_metadata) == null ? void 0 : _a.username
+      } : null,
+      error
+    };
+  },
+  // Sign in with email and password
+  async signIn(email, password) {
+    var _a;
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    return {
+      user: data.user ? {
+        id: data.user.id,
+        email: data.user.email,
+        username: (_a = data.user.user_metadata) == null ? void 0 : _a.username
+      } : null,
+      error
+    };
+  },
+  // Sign out
+  async signOut() {
+    const { error } = await supabase.auth.signOut();
+    return { error };
+  },
+  // Get current user
+  async getCurrentUser() {
+    var _a;
+    const {
+      data: { user }
+    } = await supabase.auth.getUser();
+    return user ? {
+      id: user.id,
+      email: user.email,
+      username: (_a = user.user_metadata) == null ? void 0 : _a.username
+    } : null;
+  },
+  // Subscribe to auth changes
+  onAuthStateChange(callback) {
+    return supabase.auth.onAuthStateChange((event, session) => {
+      var _a;
+      const user = (session == null ? void 0 : session.user) ? {
+        id: session.user.id,
+        email: session.user.email,
+        username: (_a = session.user.user_metadata) == null ? void 0 : _a.username
+      } : null;
+      callback(user);
+    });
+  }
+};
+const AuthContext = createContext(void 0);
+function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === void 0) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+}
+function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const currentUser = await auth.getCurrentUser();
+        setUser(currentUser);
+      } catch (err) {
+        console.error("Error checking user:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkUser();
+    const {
+      data: { subscription }
+    } = auth.onAuthStateChange((user2) => {
+      setUser(user2);
+      setLoading(false);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+  const signIn = async (email, password) => {
+    setLoading(true);
+    setError(null);
+    const result = await auth.signIn(email, password);
+    if (result.error) {
+      setError(result.error);
+    }
+    setLoading(false);
+    return result;
+  };
+  const signUp = async (email, password) => {
+    setLoading(true);
+    setError(null);
+    const result = await auth.signUp(email, password);
+    if (result.error) {
+      setError(result.error);
+    }
+    setLoading(false);
+    return result;
+  };
+  const signOut = async () => {
+    setLoading(true);
+    setError(null);
+    const result = await auth.signOut();
+    if (result.error) {
+      setError(result.error);
+    } else {
+      setUser(null);
+    }
+    setLoading(false);
+    return result;
+  };
+  const value = {
+    user,
+    loading,
+    error,
+    signIn,
+    signUp,
+    signOut
+  };
+  return /* @__PURE__ */ jsx(AuthContext.Provider, { value, children });
+}
 const Route$3 = createRootRoute({
   head: () => ({
     meta: [
@@ -3027,19 +3169,19 @@ const Route$3 = createRootRoute({
         content: "width=device-width, initial-scale=1"
       },
       {
-        title: "TanStack Start Starter"
+        title: "FinanzPlaner - Intelligente Finanzverwaltung"
       }
     ]
   }),
   component: RootComponent
 });
 function RootComponent() {
-  return /* @__PURE__ */ jsx(RootDocument, { children: /* @__PURE__ */ jsx(Outlet, {}) });
+  return /* @__PURE__ */ jsx(RootDocument, { children: /* @__PURE__ */ jsx(AuthProvider, { children: /* @__PURE__ */ jsx(Outlet, {}) }) });
 }
 function RootDocument({ children }) {
   return /* @__PURE__ */ jsxs("html", { children: [
     /* @__PURE__ */ jsx("head", { children: /* @__PURE__ */ jsx(HeadContent, {}) }),
-    /* @__PURE__ */ jsxs("body", { className: "bg-red-500 text-foreground", children: [
+    /* @__PURE__ */ jsxs("body", { className: "text-foreground", children: [
       children,
       /* @__PURE__ */ jsx(Scripts, {})
     ] })
@@ -3545,11 +3687,11 @@ function Home() {
     ] }) })
   ] });
 }
-const $$splitComponentImporter$1 = () => import('./index-BW1ZhpJ2.mjs');
+const $$splitComponentImporter$1 = () => import('./index-CTeKEaN1.mjs');
 const Route$1 = createFileRoute("/transactions/")({
   component: lazyRouteComponent($$splitComponentImporter$1, "component", () => Route$1.ssr)
 });
-const $$splitComponentImporter = () => import('./index-BFCzRxEI.mjs');
+const $$splitComponentImporter = () => import('./index-DsHpg12t.mjs');
 const Route = createFileRoute("/dashboard/")({
   component: lazyRouteComponent($$splitComponentImporter, "component", () => Route.ssr)
 });
@@ -3593,5 +3735,5 @@ const serverEntry = defineEventHandler(function(event) {
   return serverEntry$1({ request });
 });
 
-export { Badge as B, Card as C, CardHeader as a, CardTitle as b, cn as c, CardDescription as d, serverEntry as default, CardContent as e, Button as f, createServerRpc as g, createServerFn as h };
+export { Badge as B, Card as C, CardHeader as a, CardTitle as b, cn as c, CardDescription as d, serverEntry as default, CardContent as e, Button as f, createServerRpc as g, createServerFn as h, supabase as s, useAuth as u };
 //# sourceMappingURL=ssr.mjs.map

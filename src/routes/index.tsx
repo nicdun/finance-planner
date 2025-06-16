@@ -1,6 +1,6 @@
 // src/routes/index.tsx
 import * as fs from "node:fs";
-import { useRouter, createFileRoute } from "@tanstack/react-router";
+import { useRouter, createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +11,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   TrendingUp,
   Shield,
@@ -23,7 +31,10 @@ import {
   Phone,
   Mail,
   MapPin,
+  User,
+  LogOut,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const filePath = "count.txt";
 
@@ -51,6 +62,12 @@ export const Route = createFileRoute("/")({
 });
 
 export function Home() {
+  const { user, signOut, loading } = useAuth();
+
+  const handleAccountClick = () => {
+    // Navigation will be handled by the Link component
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
       {/* Header */}
@@ -94,9 +111,50 @@ export function Home() {
                 Kontakt
               </a>
             </nav>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              Beratungstermin buchen
-            </Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 rounded-full p-0">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-blue-100 text-blue-600">
+                        <User className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <div className="flex items-center justify-start gap-2 p-2">
+                    <div className="flex flex-col space-y-1 leading-none">
+                      <p className="font-medium">{user.email}</p>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard" className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      <span>Dashboard</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="cursor-pointer"
+                    onClick={() => signOut()}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Abmelden</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link to="/dashboard">
+                <Button
+                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={loading}
+                >
+                  Anmelden
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </header>

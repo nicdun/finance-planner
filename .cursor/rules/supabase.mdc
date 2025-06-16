@@ -1,0 +1,7 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Database
+- Always apply database migrations via a migration file in `supabase/migrations` and execute the migration via CLI not the MCP tool.

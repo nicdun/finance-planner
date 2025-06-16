@@ -1,82 +1,25 @@
-import { jsxs, jsx } from 'react/jsx-runtime';
+import { jsx, jsxs } from 'react/jsx-runtime';
 import { Link } from '@tanstack/react-router';
-import React__default from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import * as TabsPrimitive from '@radix-ui/react-tabs';
-import { c as cn, C as Card, a as CardHeader, b as CardTitle, e as CardContent, B as Badge } from './ssr.mjs';
-import { m as mockAccounts, S as Separator, B as BankConnection, A as Avatar, b as AvatarFallback, a as mockTransactions, c as mockMonthlyData, d as mockBudgets, e as mockGoals } from './BankConnection-BzYEi_Co.mjs';
-import { Home, Bell, Settings, User, BarChart3, CreditCard, PieChart, Target, TrendingUp, DollarSign, Wallet, PiggyBank, TrendingDown, Calendar, ArrowUpRight, ArrowDownRight, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
+import { P as ProtectedRoute, S as Separator, B as BankConnection, A as Avatar, a as AvatarFallback, T as Tabs, e as TabsList, f as TabsTrigger, h as TabsContent, b as getAccounts, g as getTransactions, c as createAccount } from './ProtectedRoute-KihgEAzx.mjs';
+import { u as useAuth, f as Button, C as Card, a as CardHeader, b as CardTitle, e as CardContent, B as Badge, s as supabase } from './ssr.mjs';
+import { Loader2, Home, Bell, Settings, User, LogOut, BarChart3, CreditCard, PieChart, Target, TrendingUp, DollarSign, Wallet, PiggyBank, TrendingDown, Calendar, ArrowUpRight, ArrowDownRight, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, Area, BarChart, Legend, Bar } from 'recharts';
+import '@radix-ui/react-separator';
+import '@radix-ui/react-avatar';
+import 'class-variance-authority';
+import '@radix-ui/react-tabs';
+import '@supabase/supabase-js';
 import 'node:fs';
 import '@radix-ui/react-slot';
-import 'class-variance-authority';
 import 'clsx';
 import 'tailwind-merge';
 import 'node:async_hooks';
 import 'node:stream';
 import 'react-dom/server';
 import 'node:stream/web';
-import '@radix-ui/react-separator';
-import '@radix-ui/react-avatar';
 
-function Tabs({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsx(
-    TabsPrimitive.Root,
-    {
-      "data-slot": "tabs",
-      className: cn("flex flex-col gap-2", className),
-      ...props
-    }
-  );
-}
-function TabsList({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsx(
-    TabsPrimitive.List,
-    {
-      "data-slot": "tabs-list",
-      className: cn(
-        "bg-muted text-muted-foreground inline-flex h-9 w-fit items-center justify-center rounded-lg p-[3px]",
-        className
-      ),
-      ...props
-    }
-  );
-}
-function TabsTrigger({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsx(
-    TabsPrimitive.Trigger,
-    {
-      "data-slot": "tabs-trigger",
-      className: cn(
-        "data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        className
-      ),
-      ...props
-    }
-  );
-}
-function TabsContent({
-  className,
-  ...props
-}) {
-  return /* @__PURE__ */ jsx(
-    TabsPrimitive.Content,
-    {
-      "data-slot": "tabs-content",
-      className: cn("flex-1 outline-none", className),
-      ...props
-    }
-  );
-}
 function SummaryCard({
   title,
   value,
@@ -756,30 +699,92 @@ function RecentTransactions({ transactions }) {
     }
   );
 }
+async function getBudgets() {
+  const { data, error } = await supabase.from("budgets").select("*").order("category");
+  if (error) {
+    console.error("Error fetching budgets:", error);
+    throw error;
+  }
+  return data.map((budget) => ({
+    id: budget.id,
+    category: budget.category,
+    budgetAmount: parseFloat(budget.budget_amount.toString()),
+    spentAmount: parseFloat(budget.spent_amount.toString()),
+    period: budget.period,
+    color: budget.color
+  }));
+}
+async function getFinancialGoals() {
+  const { data, error } = await supabase.from("financial_goals").select("*").order("target_date");
+  if (error) {
+    console.error("Error fetching financial goals:", error);
+    throw error;
+  }
+  return data.map((goal) => ({
+    id: goal.id,
+    title: goal.title,
+    targetAmount: parseFloat(goal.target_amount.toString()),
+    currentAmount: parseFloat(goal.current_amount.toString()),
+    targetDate: goal.target_date,
+    category: goal.category
+  }));
+}
+const mockMonthlyData = [
+  { month: "Jan", income: 3200, expenses: 2150, savings: 1050 },
+  { month: "Feb", income: 3200, expenses: 2280, savings: 920 },
+  { month: "M\xE4r", income: 3200, expenses: 2050, savings: 1150 },
+  { month: "Apr", income: 3200, expenses: 2320, savings: 880 },
+  { month: "Mai", income: 3200, expenses: 2180, savings: 1020 },
+  { month: "Jun", income: 3200, expenses: 2400, savings: 800 },
+  { month: "Jul", income: 3200, expenses: 2650, savings: 550 },
+  { month: "Aug", income: 3200, expenses: 2100, savings: 1100 },
+  { month: "Sep", income: 3200, expenses: 2250, savings: 950 },
+  { month: "Okt", income: 3200, expenses: 2180, savings: 1020 },
+  { month: "Nov", income: 3200, expenses: 2350, savings: 850 },
+  { month: "Dez", income: 3200, expenses: 2500, savings: 700 }
+];
 const SplitComponent = function RouteComponent() {
-  const [accounts, setAccounts] = React__default.useState(mockAccounts);
-  const handleAccountAdded = (newAccount) => {
-    setAccounts((prev) => [...prev, newAccount]);
-    [{
-      id: `tx-${Date.now()}-1`,
-      accountId: newAccount.id,
-      amount: 2500,
-      description: "Gehalt",
-      category: "Einkommen",
-      date: (/* @__PURE__ */ new Date()).toISOString().split("T")[0],
-      type: "income"
-    }, {
-      id: `tx-${Date.now()}-2`,
-      accountId: newAccount.id,
-      amount: -45.5,
-      description: "Supermarkt Einkauf",
-      category: "Lebensmittel",
-      date: new Date(Date.now() - 864e5).toISOString().split("T")[0],
-      // Yesterday
-      type: "expense"
-    }];
+  const {
+    user,
+    signOut
+  } = useAuth();
+  const [accounts, setAccounts] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [budgets, setBudgets] = useState([]);
+  const [goals, setGoals] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [accountsData, transactionsData, budgetsData, goalsData] = await Promise.all([getAccounts(), getTransactions(), getBudgets(), getFinancialGoals()]);
+        setAccounts(accountsData);
+        setTransactions(transactionsData);
+        setBudgets(budgetsData);
+        setGoals(goalsData);
+      } catch (error) {
+        console.error("Error loading dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+  const handleAccountAdded = async (newAccount) => {
+    try {
+      const createdAccount = await createAccount(newAccount);
+      setAccounts((prev) => [...prev, createdAccount]);
+    } catch (error) {
+      console.error("Error creating account:", error);
+    }
   };
-  return /* @__PURE__ */ jsxs("div", { className: "min-h-screen bg-gray-50", children: [
+  if (loading) {
+    return /* @__PURE__ */ jsx("div", { className: "min-h-screen bg-gray-50 flex items-center justify-center", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+      /* @__PURE__ */ jsx(Loader2, { className: "h-6 w-6 animate-spin text-blue-600" }),
+      /* @__PURE__ */ jsx("span", { className: "text-gray-600", children: "Lade Dashboard..." })
+    ] }) });
+  }
+  return /* @__PURE__ */ jsx(ProtectedRoute, { children: /* @__PURE__ */ jsxs("div", { className: "min-h-screen bg-gray-50", children: [
     /* @__PURE__ */ jsx(motion.header, { className: "bg-white border-b border-gray-200 px-6 py-4", initial: {
       opacity: 0,
       y: -20
@@ -806,7 +811,11 @@ const SplitComponent = function RouteComponent() {
         /* @__PURE__ */ jsx(BankConnection, { onAccountAdded: handleAccountAdded }),
         /* @__PURE__ */ jsx("button", { className: "p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100", children: /* @__PURE__ */ jsx(Bell, { className: "h-5 w-5" }) }),
         /* @__PURE__ */ jsx("button", { className: "p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100", children: /* @__PURE__ */ jsx(Settings, { className: "h-5 w-5" }) }),
-        /* @__PURE__ */ jsx(Avatar, { children: /* @__PURE__ */ jsx(AvatarFallback, { className: "bg-blue-100 text-blue-600", children: /* @__PURE__ */ jsx(User, { className: "h-4 w-4" }) }) })
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+          /* @__PURE__ */ jsx(Avatar, { children: /* @__PURE__ */ jsx(AvatarFallback, { className: "bg-blue-100 text-blue-600", children: /* @__PURE__ */ jsx(User, { className: "h-4 w-4" }) }) }),
+          /* @__PURE__ */ jsx("span", { className: "text-sm text-gray-600", children: user == null ? void 0 : user.email }),
+          /* @__PURE__ */ jsx(Button, { variant: "ghost", size: "sm", onClick: () => signOut(), className: "text-gray-400 hover:text-gray-600", children: /* @__PURE__ */ jsx(LogOut, { className: "h-4 w-4" }) })
+        ] })
       ] })
     ] }) }),
     /* @__PURE__ */ jsx("main", { className: "p-6", children: /* @__PURE__ */ jsxs("div", { className: "max-w-7xl mx-auto space-y-6", children: [
@@ -830,7 +839,7 @@ const SplitComponent = function RouteComponent() {
           "."
         ] })
       ] }) }),
-      /* @__PURE__ */ jsx(FinancialSummary, { accounts, transactions: mockTransactions }),
+      /* @__PURE__ */ jsx(FinancialSummary, { accounts, transactions }),
       /* @__PURE__ */ jsxs(Tabs, { defaultValue: "overview", className: "space-y-6", children: [
         /* @__PURE__ */ jsxs(TabsList, { className: "grid w-full grid-cols-4", children: [
           /* @__PURE__ */ jsxs(TabsTrigger, { value: "overview", className: "flex items-center gap-2", children: [
@@ -853,7 +862,7 @@ const SplitComponent = function RouteComponent() {
         /* @__PURE__ */ jsxs(TabsContent, { value: "overview", className: "space-y-6", children: [
           /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-1 lg:grid-cols-2 gap-6", children: [
             /* @__PURE__ */ jsx(FinancialChart, { data: mockMonthlyData, type: "area", title: "Finanzentwicklung 2024" }),
-            /* @__PURE__ */ jsx(RecentTransactions, { transactions: mockTransactions })
+            /* @__PURE__ */ jsx(RecentTransactions, { transactions })
           ] }),
           /* @__PURE__ */ jsxs("div", { className: "grid grid-cols-1 lg:grid-cols-2 gap-6", children: [
             /* @__PURE__ */ jsx(FinancialChart, { data: mockMonthlyData, type: "bar", title: "Monatliche \xDCbersicht" }),
@@ -862,7 +871,7 @@ const SplitComponent = function RouteComponent() {
                 /* @__PURE__ */ jsx(TrendingUp, { className: "h-5 w-5" }),
                 "Top Budgets"
               ] }),
-              /* @__PURE__ */ jsx("div", { className: "space-y-3", children: mockBudgets.slice(0, 3).map((budget, index) => /* @__PURE__ */ jsx(BudgetCard, { budget, index }, budget.id)) })
+              /* @__PURE__ */ jsx("div", { className: "space-y-3", children: budgets.slice(0, 3).map((budget, index) => /* @__PURE__ */ jsx(BudgetCard, { budget, index }, budget.id)) })
             ] })
           ] })
         ] }),
@@ -893,19 +902,19 @@ const SplitComponent = function RouteComponent() {
             /* @__PURE__ */ jsx(PieChart, { className: "h-5 w-5" }),
             "Budget-\xDCbersicht"
           ] }),
-          /* @__PURE__ */ jsx("div", { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4", children: mockBudgets.map((budget, index) => /* @__PURE__ */ jsx(BudgetCard, { budget, index }, budget.id)) })
+          /* @__PURE__ */ jsx("div", { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4", children: budgets.map((budget, index) => /* @__PURE__ */ jsx(BudgetCard, { budget, index }, budget.id)) })
         ] }) }),
         /* @__PURE__ */ jsx(TabsContent, { value: "goals", className: "space-y-6", children: /* @__PURE__ */ jsxs("div", { children: [
           /* @__PURE__ */ jsxs("h3", { className: "text-lg font-semibold mb-4 flex items-center gap-2", children: [
             /* @__PURE__ */ jsx(Target, { className: "h-5 w-5" }),
             "Finanzielle Ziele"
           ] }),
-          /* @__PURE__ */ jsx("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: mockGoals.map((goal, index) => /* @__PURE__ */ jsx(GoalCard, { goal, index }, goal.id)) })
+          /* @__PURE__ */ jsx("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4", children: goals.map((goal, index) => /* @__PURE__ */ jsx(GoalCard, { goal, index }, goal.id)) })
         ] }) })
       ] })
     ] }) })
-  ] });
+  ] }) });
 };
 
 export { SplitComponent as component };
-//# sourceMappingURL=index-BFCzRxEI.mjs.map
+//# sourceMappingURL=index-DsHpg12t.mjs.map

@@ -2,6 +2,8 @@ import * as fs from 'node:fs';
 import { g as createServerRpc, h as createServerFn } from './ssr.mjs';
 import '@tanstack/react-router';
 import 'react/jsx-runtime';
+import 'react';
+import '@supabase/supabase-js';
 import '@radix-ui/react-slot';
 import 'class-variance-authority';
 import 'clsx';
@@ -37,4 +39,4 @@ const updateCount = createServerFn({
 });
 
 export { getCount_createServerFn_handler, updateCount_createServerFn_handler };
-//# sourceMappingURL=index-DM6nvWKO.mjs.map
+//# sourceMappingURL=index-DiptTrQN.mjs.map

@@ -1,19 +1,21 @@
-import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
+import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import { Link } from '@tanstack/react-router';
-import React__default, { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { m as mockAccounts, a as mockTransactions, S as Separator, B as BankConnection, A as Avatar, b as AvatarFallback, I as Input, L as Label } from './BankConnection-BzYEi_Co.mjs';
-import { f as Button, C as Card, e as CardContent, a as CardHeader, b as CardTitle, B as Badge, d as CardDescription, c as cn } from './ssr.mjs';
-import { Home, Bell, Settings, User, ArrowUpCircle, ArrowDownCircle, ArrowUpDown, Wand2, Search, Filter, Tag, Building, Calendar, DollarSign, X, BarChart3, Sparkles, CheckCircle, AlertTriangle, Zap, Brain, EyeOff, Eye, MoreHorizontal, Copy, Edit, Trash2, ChevronDownIcon, CheckIcon, ShoppingCart, Utensils, Gamepad2, Car, HomeIcon, Edit3, ArrowRight, BookOpen, AlertCircle, Check, ChevronUpIcon } from 'lucide-react';
+import { P as ProtectedRoute, S as Separator, B as BankConnection, A as Avatar, a as AvatarFallback, g as getTransactions, b as getAccounts, c as createAccount, I as Input, L as Label, d as bulkUpdateTransactionCategories, u as updateTransactionCategory } from './ProtectedRoute-KihgEAzx.mjs';
+import { u as useAuth, f as Button, C as Card, e as CardContent, a as CardHeader, b as CardTitle, B as Badge, d as CardDescription, c as cn } from './ssr.mjs';
+import { Home, Bell, Settings, User, LogOut, ArrowUpCircle, ArrowDownCircle, ArrowUpDown, Wand2, Loader2, AlertCircle, Search, Filter, Tag, Building, Calendar, DollarSign, X, BarChart3, Sparkles, CheckCircle, AlertTriangle, Zap, Brain, EyeOff, Eye, MoreHorizontal, Copy, Edit, Trash2, ChevronDownIcon, CheckIcon, ShoppingCart, Utensils, Gamepad2, Car, HomeIcon, Edit3, ArrowRight, BookOpen, Check, ChevronUpIcon } from 'lucide-react';
 import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
 import * as SelectPrimitive from '@radix-ui/react-select';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 import '@radix-ui/react-separator';
 import '@radix-ui/react-avatar';
+import 'class-variance-authority';
+import '@radix-ui/react-tabs';
+import '@supabase/supabase-js';
 import 'node:fs';
 import '@radix-ui/react-slot';
-import 'class-variance-authority';
 import 'clsx';
 import 'tailwind-merge';
 import 'node:async_hooks';
@@ -1731,189 +1733,83 @@ function TransactionFilters({
     ] }) })
   ] });
 }
-const enhancedTransactions = [
-  ...mockTransactions,
-  // Streaming & Abonnements
-  {
-    id: "6",
-    accountId: "1",
-    amount: -13.99,
-    description: "Netflix Streaming",
-    category: "Sonstiges",
-    // Wird automatisch als "Abonnements" kategorisiert
-    date: "2024-01-06",
-    type: "expense"
-  },
-  {
-    id: "7",
-    accountId: "1",
-    amount: -9.99,
-    description: "Spotify Premium",
-    category: "Sonstiges",
-    // Wird automatisch als "Abonnements" kategorisiert
-    date: "2024-01-07",
-    type: "expense"
-  },
-  {
-    id: "8",
-    accountId: "1",
-    amount: -7.99,
-    description: "Disney+ Abo",
-    category: "Sonstiges",
-    // Wird automatisch als "Abonnements" kategorisiert
-    date: "2024-01-08",
-    type: "expense"
-  },
-  // Supermärkte
-  {
-    id: "9",
-    accountId: "1",
-    amount: -89.45,
-    description: "REWE Lebensmittel",
-    category: "Sonstiges",
-    // Wird automatisch als "Lebensmittel" kategorisiert
-    date: "2024-01-09",
-    type: "expense"
-  },
-  {
-    id: "10",
-    accountId: "1",
-    amount: -67.23,
-    description: "EDEKA Wocheneinkauf",
-    category: "Sonstiges",
-    // Wird automatisch als "Lebensmittel" kategorisiert
-    date: "2024-01-10",
-    type: "expense"
-  },
-  {
-    id: "11",
-    accountId: "1",
-    amount: -34.5,
-    description: "ALDI Nord",
-    category: "Sonstiges",
-    // Wird automatisch als "Lebensmittel" kategorisiert
-    date: "2024-01-11",
-    type: "expense"
-  },
-  // Transport
-  {
-    id: "12",
-    accountId: "1",
-    amount: -65.8,
-    description: "Shell Tankstelle",
-    category: "Sonstiges",
-    // Wird automatisch als "Transport" kategorisiert
-    date: "2024-01-12",
-    type: "expense"
-  },
-  {
-    id: "13",
-    accountId: "1",
-    amount: -98.5,
-    description: "Deutsche Bahn Fahrkarte",
-    category: "Sonstiges",
-    // Wird automatisch als "Transport" kategorisiert
-    date: "2024-01-13",
-    type: "expense"
-  },
-  // Nebenkosten
-  {
-    id: "14",
-    accountId: "1",
-    amount: -78.9,
-    description: "E.ON Strom",
-    category: "Sonstiges",
-    // Wird automatisch als "Nebenkosten" kategorisiert
-    date: "2024-01-14",
-    type: "expense"
-  },
-  {
-    id: "15",
-    accountId: "1",
-    amount: -45.6,
-    description: "Telekom Internet",
-    category: "Sonstiges",
-    // Wird automatisch als "Nebenkosten" kategorisiert
-    date: "2024-01-15",
-    type: "expense"
-  },
-  // Gastronomie
-  {
-    id: "16",
-    accountId: "1",
-    amount: -23.4,
-    description: "McDonald's Restaurant",
-    category: "Sonstiges",
-    // Wird automatisch als "Gastronomie" kategorisiert
-    date: "2024-01-16",
-    type: "expense"
-  },
-  {
-    id: "17",
-    accountId: "1",
-    amount: -8.5,
-    description: "Starbucks Coffee",
-    category: "Sonstiges",
-    // Wird automatisch als "Gastronomie" kategorisiert
-    date: "2024-01-17",
-    type: "expense"
-  },
-  // Wohnen
-  {
-    id: "18",
-    accountId: "1",
-    amount: -1350,
-    description: "Wohnungsmiete Februar",
-    category: "Sonstiges",
-    // Wird automatisch als "Wohnen" kategorisiert
-    date: "2024-02-01",
-    type: "expense"
-  },
-  // Gesundheit
-  {
-    id: "19",
-    accountId: "1",
-    amount: -45.2,
-    description: "Apotheke Medikamente",
-    category: "Sonstiges",
-    // Wird automatisch als "Gesundheit" kategorisiert
-    date: "2024-01-18",
-    type: "expense"
-  },
-  {
-    id: "20",
-    accountId: "1",
-    amount: -85,
-    description: "Zahnarzt Behandlung",
-    category: "Sonstiges",
-    // Wird automatisch als "Gesundheit" kategorisiert
-    date: "2024-01-19",
-    type: "expense"
-  }
-];
+const LoadingSpinner = () => /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-center py-12", children: [
+  /* @__PURE__ */ jsx(Loader2, { className: "h-6 w-6 animate-spin text-blue-600" }),
+  /* @__PURE__ */ jsx("span", { className: "ml-2 text-gray-600", children: "Lade Transaktionen..." })
+] });
+const ErrorMessage = ({
+  message,
+  onRetry
+}) => /* @__PURE__ */ jsxs("div", { className: "flex flex-col items-center justify-center py-12", children: [
+  /* @__PURE__ */ jsx(AlertCircle, { className: "h-12 w-12 text-red-500 mb-4" }),
+  /* @__PURE__ */ jsx("h3", { className: "text-lg font-semibold text-gray-900 mb-2", children: "Fehler beim Laden" }),
+  /* @__PURE__ */ jsx("p", { className: "text-gray-600 mb-4", children: message }),
+  /* @__PURE__ */ jsx(Button, { onClick: onRetry, variant: "outline", children: "Erneut versuchen" })
+] });
 const SplitComponent = function RouteComponent() {
-  const [accounts, setAccounts] = React__default.useState(mockAccounts);
-  const [transactions, setTransactions] = useState(enhancedTransactions);
+  const {
+    user,
+    signOut
+  } = useAuth();
+  const [accounts, setAccounts] = useState([]);
+  const [transactions, setTransactions] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedAccount, setSelectedAccount] = useState("");
   const [sortField, setSortField] = useState("date");
   const [sortDirection, setSortDirection] = useState("desc");
   const [showBulkCategorization, setShowBulkCategorization] = useState(false);
-  const handleAccountAdded = (newAccount) => {
-    setAccounts((prev) => [...prev, newAccount]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const [transactionsData, accountsData] = await Promise.all([getTransactions(), getAccounts()]);
+      setTransactions(transactionsData);
+      setAccounts(accountsData);
+    } catch (err) {
+      console.error("Error loading data:", err);
+      setError(err instanceof Error ? err.message : "Ein unbekannter Fehler ist aufgetreten");
+    } finally {
+      setLoading(false);
+    }
   };
-  const handleCategoryChange = (transactionId, newCategory) => {
-    setTransactions((prev) => prev.map((transaction) => transaction.id === transactionId ? {
-      ...transaction,
-      category: newCategory
-    } : transaction));
+  useEffect(() => {
+    loadData();
+  }, []);
+  const handleAccountAdded = async (newAccount) => {
+    try {
+      const createdAccount = await createAccount(newAccount);
+      setAccounts((prev) => [...prev, createdAccount]);
+    } catch (err) {
+      console.error("Error creating account:", err);
+      setError(err instanceof Error ? err.message : "Fehler beim Erstellen des Kontos");
+    }
   };
-  const handleBulkCategoryChange = (transactionIds, newCategory) => {
-    setTransactions((prev) => prev.map((transaction) => transactionIds.includes(transaction.id) ? {
-      ...transaction,
-      category: newCategory
-    } : transaction));
+  const handleCategoryChange = async (transactionId, newCategory) => {
+    try {
+      await updateTransactionCategory(transactionId, newCategory);
+      setTransactions((prev) => prev.map((transaction) => transaction.id === transactionId ? {
+        ...transaction,
+        category: newCategory
+      } : transaction));
+    } catch (err) {
+      console.error("Error updating transaction category:", err);
+      setError(err instanceof Error ? err.message : "Fehler beim Aktualisieren der Kategorie");
+    }
+  };
+  const handleBulkCategoryChange = async (transactionIds, newCategory) => {
+    try {
+      await bulkUpdateTransactionCategories(transactionIds, newCategory);
+      setTransactions((prev) => prev.map((transaction) => transactionIds.includes(transaction.id) ? {
+        ...transaction,
+        category: newCategory
+      } : transaction));
+    } catch (err) {
+      console.error("Error bulk updating transaction categories:", err);
+      setError(err instanceof Error ? err.message : "Fehler beim Aktualisieren der Kategorien");
+    }
   };
   const handleBulkCategorize = (updatedTransactions) => {
     setTransactions(updatedTransactions);
@@ -1962,7 +1858,7 @@ const SplitComponent = function RouteComponent() {
   const totalIncome = filteredTransactions.filter((t) => t.type === "income").reduce((sum, t) => sum + t.amount, 0);
   const totalExpenses = Math.abs(filteredTransactions.filter((t) => t.type === "expense").reduce((sum, t) => sum + t.amount, 0));
   const netAmount = totalIncome - totalExpenses;
-  return /* @__PURE__ */ jsxs("div", { className: "min-h-screen bg-gray-50", children: [
+  return /* @__PURE__ */ jsx(ProtectedRoute, { children: /* @__PURE__ */ jsxs("div", { className: "min-h-screen bg-gray-50", children: [
     /* @__PURE__ */ jsx(motion.header, { className: "bg-white border-b border-gray-200 px-6 py-4", initial: {
       opacity: 0,
       y: -20
@@ -1989,7 +1885,11 @@ const SplitComponent = function RouteComponent() {
         /* @__PURE__ */ jsx(BankConnection, { onAccountAdded: handleAccountAdded }),
         /* @__PURE__ */ jsx(Button, { variant: "ghost", size: "sm", className: "p-2 text-gray-400 hover:text-gray-600", children: /* @__PURE__ */ jsx(Bell, { className: "h-5 w-5" }) }),
         /* @__PURE__ */ jsx(Button, { variant: "ghost", size: "sm", className: "p-2 text-gray-400 hover:text-gray-600", children: /* @__PURE__ */ jsx(Settings, { className: "h-5 w-5" }) }),
-        /* @__PURE__ */ jsx(Avatar, { children: /* @__PURE__ */ jsx(AvatarFallback, { className: "bg-blue-100 text-blue-600", children: /* @__PURE__ */ jsx(User, { className: "h-4 w-4" }) }) })
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+          /* @__PURE__ */ jsx(Avatar, { children: /* @__PURE__ */ jsx(AvatarFallback, { className: "bg-blue-100 text-blue-600", children: /* @__PURE__ */ jsx(User, { className: "h-4 w-4" }) }) }),
+          /* @__PURE__ */ jsx("span", { className: "text-sm text-gray-600", children: user == null ? void 0 : user.email }),
+          /* @__PURE__ */ jsx(Button, { variant: "ghost", size: "sm", onClick: () => signOut(), className: "text-gray-400 hover:text-gray-600", children: /* @__PURE__ */ jsx(LogOut, { className: "h-4 w-4" }) })
+        ] })
       ] })
     ] }) }),
     /* @__PURE__ */ jsx("main", { className: "p-6", children: /* @__PURE__ */ jsxs("div", { className: "max-w-7xl mx-auto space-y-6", children: [
@@ -2005,107 +1905,111 @@ const SplitComponent = function RouteComponent() {
         /* @__PURE__ */ jsx("h2", { className: "text-2xl font-bold text-gray-900 mb-2", children: "Transaktionen \u{1F4B0}" }),
         /* @__PURE__ */ jsx("p", { className: "text-gray-600", children: "Alle Ihre Einnahmen und Ausgaben im \xDCberblick" })
       ] }) }),
-      /* @__PURE__ */ jsxs(motion.div, { className: "grid grid-cols-1 md:grid-cols-3 gap-4 mb-6", initial: {
-        opacity: 0,
-        y: 20
-      }, animate: {
-        opacity: 1,
-        y: 0
-      }, transition: {
-        duration: 0.4,
-        delay: 0.1
-      }, children: [
-        /* @__PURE__ */ jsx(Card, { children: /* @__PURE__ */ jsx(CardContent, { className: "p-4", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-3", children: [
-          /* @__PURE__ */ jsx(ArrowUpCircle, { className: "h-8 w-8 text-green-600" }),
-          /* @__PURE__ */ jsxs("div", { children: [
-            /* @__PURE__ */ jsx("p", { className: "text-sm text-gray-600", children: "Einnahmen" }),
-            /* @__PURE__ */ jsxs("p", { className: "text-lg font-semibold text-green-600", children: [
-              "+",
-              totalIncome.toLocaleString("de-DE", {
-                style: "currency",
-                currency: "EUR"
-              })
+      loading && /* @__PURE__ */ jsx(LoadingSpinner, {}),
+      error && !loading && /* @__PURE__ */ jsx(Card, { children: /* @__PURE__ */ jsx(CardContent, { children: /* @__PURE__ */ jsx(ErrorMessage, { message: error, onRetry: loadData }) }) }),
+      !loading && !error && /* @__PURE__ */ jsxs(Fragment, { children: [
+        /* @__PURE__ */ jsxs(motion.div, { className: "grid grid-cols-1 md:grid-cols-3 gap-4 mb-6", initial: {
+          opacity: 0,
+          y: 20
+        }, animate: {
+          opacity: 1,
+          y: 0
+        }, transition: {
+          duration: 0.4,
+          delay: 0.1
+        }, children: [
+          /* @__PURE__ */ jsx(Card, { children: /* @__PURE__ */ jsx(CardContent, { className: "p-4", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-3", children: [
+            /* @__PURE__ */ jsx(ArrowUpCircle, { className: "h-8 w-8 text-green-600" }),
+            /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsx("p", { className: "text-sm text-gray-600", children: "Einnahmen" }),
+              /* @__PURE__ */ jsxs("p", { className: "text-lg font-semibold text-green-600", children: [
+                "+",
+                totalIncome.toLocaleString("de-DE", {
+                  style: "currency",
+                  currency: "EUR"
+                })
+              ] })
             ] })
-          ] })
-        ] }) }) }),
-        /* @__PURE__ */ jsx(Card, { children: /* @__PURE__ */ jsx(CardContent, { className: "p-4", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-3", children: [
-          /* @__PURE__ */ jsx(ArrowDownCircle, { className: "h-8 w-8 text-red-600" }),
-          /* @__PURE__ */ jsxs("div", { children: [
-            /* @__PURE__ */ jsx("p", { className: "text-sm text-gray-600", children: "Ausgaben" }),
-            /* @__PURE__ */ jsxs("p", { className: "text-lg font-semibold text-red-600", children: [
-              "-",
-              totalExpenses.toLocaleString("de-DE", {
-                style: "currency",
-                currency: "EUR"
-              })
+          ] }) }) }),
+          /* @__PURE__ */ jsx(Card, { children: /* @__PURE__ */ jsx(CardContent, { className: "p-4", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-3", children: [
+            /* @__PURE__ */ jsx(ArrowDownCircle, { className: "h-8 w-8 text-red-600" }),
+            /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsx("p", { className: "text-sm text-gray-600", children: "Ausgaben" }),
+              /* @__PURE__ */ jsxs("p", { className: "text-lg font-semibold text-red-600", children: [
+                "-",
+                totalExpenses.toLocaleString("de-DE", {
+                  style: "currency",
+                  currency: "EUR"
+                })
+              ] })
             ] })
-          ] })
-        ] }) }) }),
-        /* @__PURE__ */ jsx(Card, { children: /* @__PURE__ */ jsx(CardContent, { className: "p-4", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-3", children: [
-          /* @__PURE__ */ jsx(ArrowUpDown, { className: "h-8 w-8 text-blue-600" }),
-          /* @__PURE__ */ jsxs("div", { children: [
-            /* @__PURE__ */ jsx("p", { className: "text-sm text-gray-600", children: "Netto" }),
-            /* @__PURE__ */ jsxs("p", { className: `text-lg font-semibold ${netAmount >= 0 ? "text-green-600" : "text-red-600"}`, children: [
-              netAmount >= 0 ? "+" : "",
-              netAmount.toLocaleString("de-DE", {
-                style: "currency",
-                currency: "EUR"
-              })
+          ] }) }) }),
+          /* @__PURE__ */ jsx(Card, { children: /* @__PURE__ */ jsx(CardContent, { className: "p-4", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-3", children: [
+            /* @__PURE__ */ jsx(ArrowUpDown, { className: "h-8 w-8 text-blue-600" }),
+            /* @__PURE__ */ jsxs("div", { children: [
+              /* @__PURE__ */ jsx("p", { className: "text-sm text-gray-600", children: "Netto" }),
+              /* @__PURE__ */ jsxs("p", { className: `text-lg font-semibold ${netAmount >= 0 ? "text-green-600" : "text-red-600"}`, children: [
+                netAmount >= 0 ? "+" : "",
+                netAmount.toLocaleString("de-DE", {
+                  style: "currency",
+                  currency: "EUR"
+                })
+              ] })
             ] })
+          ] }) }) })
+        ] }),
+        /* @__PURE__ */ jsx(motion.div, { initial: {
+          opacity: 0,
+          y: 20
+        }, animate: {
+          opacity: 1,
+          y: 0
+        }, transition: {
+          duration: 0.4,
+          delay: 0.2
+        }, children: /* @__PURE__ */ jsx(Card, { children: /* @__PURE__ */ jsx(CardContent, { className: "p-4", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col lg:flex-row gap-4", children: [
+          /* @__PURE__ */ jsx("div", { className: "flex-1", children: /* @__PURE__ */ jsx(TransactionFilters, { searchTerm, onSearchChange: setSearchTerm, selectedCategory, onCategoryChange: setSelectedCategory, selectedAccount, onAccountChange: setSelectedAccount, categories, accounts, onClearFilters: () => {
+            setSelectedCategory("");
+            setSelectedAccount("");
+          } }) }),
+          /* @__PURE__ */ jsxs(Button, { variant: "outline", onClick: () => setShowBulkCategorization(true), className: "flex items-center gap-2", children: [
+            /* @__PURE__ */ jsx(Wand2, { className: "h-4 w-4" }),
+            "KI Kategorisierung"
           ] })
-        ] }) }) })
-      ] }),
-      /* @__PURE__ */ jsx(motion.div, { initial: {
-        opacity: 0,
-        y: 20
-      }, animate: {
-        opacity: 1,
-        y: 0
-      }, transition: {
-        duration: 0.4,
-        delay: 0.2
-      }, children: /* @__PURE__ */ jsx(Card, { children: /* @__PURE__ */ jsx(CardContent, { className: "p-4", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col lg:flex-row gap-4", children: [
-        /* @__PURE__ */ jsx("div", { className: "flex-1", children: /* @__PURE__ */ jsx(TransactionFilters, { searchTerm, onSearchChange: setSearchTerm, selectedCategory, onCategoryChange: setSelectedCategory, selectedAccount, onAccountChange: setSelectedAccount, categories, accounts, onClearFilters: () => {
-          setSelectedCategory("");
-          setSelectedAccount("");
-        } }) }),
-        /* @__PURE__ */ jsxs(Button, { variant: "outline", onClick: () => setShowBulkCategorization(true), className: "flex items-center gap-2", children: [
-          /* @__PURE__ */ jsx(Wand2, { className: "h-4 w-4" }),
-          "KI Kategorisierung"
-        ] })
-      ] }) }) }) }),
-      /* @__PURE__ */ jsx(AnimatePresence, { children: showBulkCategorization && /* @__PURE__ */ jsx(motion.div, { initial: {
-        opacity: 0,
-        y: 20
-      }, animate: {
-        opacity: 1,
-        y: 0
-      }, exit: {
-        opacity: 0,
-        y: 20
-      }, transition: {
-        duration: 0.4
-      }, children: /* @__PURE__ */ jsx(BulkCategorizationPanel, { transactions: filteredTransactions, onBulkCategorize: handleBulkCategorize, onClose: () => setShowBulkCategorization(false) }) }) }),
-      /* @__PURE__ */ jsx(motion.div, { initial: {
-        opacity: 0,
-        y: 20
-      }, animate: {
-        opacity: 1,
-        y: 0
-      }, transition: {
-        duration: 0.4,
-        delay: 0.3
-      }, children: /* @__PURE__ */ jsxs(Card, { children: [
-        /* @__PURE__ */ jsx(CardHeader, { children: /* @__PURE__ */ jsx(CardTitle, { className: "flex items-center justify-between", children: /* @__PURE__ */ jsxs("span", { children: [
-          "Transaktionen (",
-          filteredTransactions.length,
-          ")"
-        ] }) }) }),
-        /* @__PURE__ */ jsx(CardContent, { children: /* @__PURE__ */ jsx(TransactionTable, { transactions: filteredTransactions, accounts, onSort: handleSort, sortField, sortDirection, onCategoryChange: handleCategoryChange, onBulkCategoryChange: handleBulkCategoryChange }) })
-      ] }) })
+        ] }) }) }) }),
+        /* @__PURE__ */ jsx(AnimatePresence, { children: showBulkCategorization && /* @__PURE__ */ jsx(motion.div, { initial: {
+          opacity: 0,
+          y: 20
+        }, animate: {
+          opacity: 1,
+          y: 0
+        }, exit: {
+          opacity: 0,
+          y: 20
+        }, transition: {
+          duration: 0.4
+        }, children: /* @__PURE__ */ jsx(BulkCategorizationPanel, { transactions: filteredTransactions, onBulkCategorize: handleBulkCategorize, onClose: () => setShowBulkCategorization(false) }) }) }),
+        /* @__PURE__ */ jsx(motion.div, { initial: {
+          opacity: 0,
+          y: 20
+        }, animate: {
+          opacity: 1,
+          y: 0
+        }, transition: {
+          duration: 0.4,
+          delay: 0.3
+        }, children: /* @__PURE__ */ jsxs(Card, { children: [
+          /* @__PURE__ */ jsx(CardHeader, { children: /* @__PURE__ */ jsx(CardTitle, { className: "flex items-center justify-between", children: /* @__PURE__ */ jsxs("span", { children: [
+            "Transaktionen (",
+            filteredTransactions.length,
+            ")"
+          ] }) }) }),
+          /* @__PURE__ */ jsx(CardContent, { children: /* @__PURE__ */ jsx(TransactionTable, { transactions: filteredTransactions, accounts, onSort: handleSort, sortField, sortDirection, onCategoryChange: handleCategoryChange, onBulkCategoryChange: handleBulkCategoryChange }) })
+        ] }) })
+      ] })
     ] }) })
-  ] });
+  ] }) });
 };
 
 export { SplitComponent as component };
-//# sourceMappingURL=index-BW1ZhpJ2.mjs.map
+//# sourceMappingURL=index-CTeKEaN1.mjs.map
