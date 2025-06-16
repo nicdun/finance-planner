@@ -1,27 +1,10 @@
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-  Building2,
-  CreditCard,
-  Plus,
-  X,
-  Shield,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-} from "lucide-react";
 import { Account } from "@/lib/types";
+import { AnimatePresence, motion } from "framer-motion";
+import { Building2, CheckCircle, Loader2, Plus, Shield, X } from "lucide-react";
+import { useState } from "react";
 
 interface Bank {
   id: string;

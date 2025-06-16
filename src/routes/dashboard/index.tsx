@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import React from "react";
 import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -98,12 +98,12 @@ function RouteComponent() {
               >
                 Dashboard
               </a>
-              <a
-                href="#"
+              <Link
+                to="/transactions"
                 className="text-sm font-medium text-gray-600 hover:text-gray-900"
               >
                 Transaktionen
-              </a>
+              </Link>
               <a
                 href="#"
                 className="text-sm font-medium text-gray-600 hover:text-gray-900"
