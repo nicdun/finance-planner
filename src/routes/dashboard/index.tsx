@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import React from "react";
 import { motion } from "framer-motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
@@ -16,12 +17,13 @@ import {
 } from "lucide-react";
 
 // Import dashboard components
-import { FinancialSummary } from "@/components/dashboard/FinancialSummary";
-import { AccountCard } from "@/components/dashboard/AccountCard";
-import { BudgetCard } from "@/components/dashboard/BudgetCard";
-import { GoalCard } from "@/components/dashboard/GoalCard";
-import { FinancialChart } from "@/components/dashboard/FinancialChart";
-import { RecentTransactions } from "@/components/dashboard/RecentTransactions";
+import { FinancialSummary } from "@/features/dashboard/FinancialSummary";
+import { AccountCard } from "@/features/dashboard/AccountCard";
+import { BudgetCard } from "@/features/dashboard/BudgetCard";
+import { GoalCard } from "@/features/dashboard/GoalCard";
+import { FinancialChart } from "@/features/dashboard/FinancialChart";
+import { RecentTransactions } from "@/features/dashboard/RecentTransactions";
+import { BankConnection } from "@/features/banking/BankConnection";
 
 // Import mock data
 import {
@@ -32,11 +34,45 @@ import {
   mockMonthlyData,
 } from "@/lib/mock-data";
 
+// Import types
+import { Account } from "@/lib/types";
+
 export const Route = createFileRoute("/dashboard/")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
+  const [accounts, setAccounts] = React.useState<Account[]>(mockAccounts);
+
+  const handleAccountAdded = (newAccount: Account) => {
+    setAccounts((prev) => [...prev, newAccount]);
+
+    // Add some sample transactions for the new account
+    const sampleTransactions = [
+      {
+        id: `tx-${Date.now()}-1`,
+        accountId: newAccount.id,
+        amount: 2500.0,
+        description: "Gehalt",
+        category: "Einkommen",
+        date: new Date().toISOString().split("T")[0],
+        type: "income" as const,
+      },
+      {
+        id: `tx-${Date.now()}-2`,
+        accountId: newAccount.id,
+        amount: -45.5,
+        description: "Supermarkt Einkauf",
+        category: "Lebensmittel",
+        date: new Date(Date.now() - 86400000).toISOString().split("T")[0], // Yesterday
+        type: "expense" as const,
+      },
+    ];
+
+    // Here you would typically update transactions state as well
+    // For now we just add the account
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -83,6 +119,7 @@ function RouteComponent() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
+            <BankConnection onAccountAdded={handleAccountAdded} />
             <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
               <Bell className="h-5 w-5" />
             </button>
@@ -124,7 +161,7 @@ function RouteComponent() {
 
           {/* Financial Summary */}
           <FinancialSummary
-            accounts={mockAccounts}
+            accounts={accounts}
             transactions={mockTransactions}
           />
 
@@ -185,12 +222,15 @@ function RouteComponent() {
 
             <TabsContent value="accounts" className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <CreditCard className="h-5 w-5" />
-                  Ihre Konten
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <CreditCard className="h-5 w-5" />
+                    Ihre Konten
+                  </h3>
+                  <BankConnection onAccountAdded={handleAccountAdded} />
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {mockAccounts.map((account, index) => (
+                  {accounts.map((account, index) => (
                     <AccountCard
                       key={account.id}
                       account={account}
@@ -198,6 +238,23 @@ function RouteComponent() {
                     />
                   ))}
                 </div>
+                {accounts.length === 0 && (
+                  <motion.div
+                    className="text-center py-12"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                      Noch keine Konten verbunden
+                    </h3>
+                    <p className="text-gray-500 mb-4">
+                      Verbinden Sie Ihr erstes Bankkonto, um Ihre Finanzen zu
+                      verwalten.
+                    </p>
+                    <BankConnection onAccountAdded={handleAccountAdded} />
+                  </motion.div>
+                )}
               </div>
             </TabsContent>
 
