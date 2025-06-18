@@ -1,20 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import React, { useState, useMemo, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,55 +8,45 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  ArrowUpDown,
-  Search,
-  Filter,
-  Calendar,
-  Download,
-  Home,
-  User,
-  Bell,
-  Settings,
-  ArrowUpCircle,
-  ArrowDownCircle,
-  ShoppingCart,
-  Car,
-  HomeIcon,
-  Utensils,
-  Zap,
-  Gamepad2,
-  Plus,
-  X,
-  Wand2,
-  Loader2,
   AlertCircle,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  ArrowUpDown,
+  Bell,
+  Car,
+  Gamepad2,
+  Home,
+  HomeIcon,
+  Loader2,
   LogOut,
+  Settings,
+  ShoppingCart,
+  User,
+  Utensils,
+  Wand2,
+  Zap,
 } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
 
 // Import database functions and types
-import {
-  getTransactions,
-  updateTransactionCategory,
-  bulkUpdateTransactionCategories,
-} from "@/features/transactions/db";
-import { getAccounts, createAccount } from "@/features/accounts/db";
-import { Transaction, Account } from "@/lib/types";
-import { BankConnection } from "@/features/banking/BankConnection";
-import { CategoryEditor } from "@/features/transactions/CategoryEditor";
-import { BulkCategorizationPanel } from "@/features/transactions/BulkCategorizationPanel";
-import { TransactionTable } from "@/features/transactions/TransactionTable";
-import { TransactionFilters } from "@/features/transactions/TransactionFilters";
-import { categorizeTransactions } from "@/lib/categorization";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
+import { createAccount, getAccounts } from "@/features/accounts/db";
+import { BankConnection } from "@/features/banking/BankConnection";
+import { BulkCategorizationPanel } from "@/features/transactions/BulkCategorizationPanel";
+import {
+  bulkUpdateTransactionCategories,
+  getTransactions,
+  updateTransactionCategory,
+} from "@/features/transactions/db";
+import { TransactionFilters } from "@/features/transactions/TransactionFilters";
+import { TransactionTable } from "@/features/transactions/TransactionTable";
+import { categorizeTransactions } from "@/lib/categorization";
+import { Account, Transaction } from "@/lib/types";
 
 // Loading and error components
 const LoadingSpinner = () => (
@@ -127,10 +103,10 @@ const categoryColors: Record<string, string> = {
 };
 
 export const Route = createFileRoute("/transactions/")({
-  component: RouteComponent,
+  component: TransactionsPage,
 });
 
-function RouteComponent() {
+export function TransactionsPage() {
   const { user, signOut } = useAuth();
   // State management
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -193,14 +169,15 @@ function RouteComponent() {
     newCategory: string
   ) => {
     try {
-      await updateTransactionCategory(transactionId, newCategory);
+      const updatedTransaction = await updateTransactionCategory(
+        transactionId,
+        newCategory
+      );
 
       // Update local state
       setTransactions((prev) =>
         prev.map((transaction) =>
-          transaction.id === transactionId
-            ? { ...transaction, category: newCategory }
-            : transaction
+          transaction.id === transactionId ? updatedTransaction : transaction
         )
       );
     } catch (err) {
@@ -218,16 +195,20 @@ function RouteComponent() {
     newCategory: string
   ) => {
     try {
-      await bulkUpdateTransactionCategories(transactionIds, newCategory);
+      const updatedTransactions = await bulkUpdateTransactionCategories(
+        transactionIds,
+        newCategory
+      );
 
       // Update local state
-      setTransactions((prev) =>
-        prev.map((transaction) =>
-          transactionIds.includes(transaction.id)
-            ? { ...transaction, category: newCategory }
+      setTransactions((prev) => {
+        const updatedMap = new Map(updatedTransactions.map((t) => [t.id, t]));
+        return prev.map((transaction) =>
+          updatedMap.has(transaction.id)
+            ? updatedMap.get(transaction.id)!
             : transaction
-        )
-      );
+        );
+      });
     } catch (err) {
       console.error("Error bulk updating transaction categories:", err);
       setError(

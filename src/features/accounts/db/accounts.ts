@@ -3,9 +3,25 @@ import { Account } from "@/lib/types";
 
 // Account functions
 export async function getAccounts(): Promise<Account[]> {
+  // Get current user
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError) {
+    console.error("Authentication error:", authError);
+    throw authError;
+  }
+
+  if (!user) {
+    throw new Error("Not authenticated");
+  }
+
   const { data, error } = await supabase
     .from("accounts")
     .select("*")
+    .eq("user_id", user.id)
     .order("name");
 
   if (error) {
@@ -29,7 +45,14 @@ export async function createAccount(
   // Get current user
   const {
     data: { user },
+    error: authError,
   } = await supabase.auth.getUser();
+
+  if (authError) {
+    console.error("Authentication error:", authError);
+    throw authError;
+  }
+
   if (!user) {
     throw new Error("User not authenticated");
   }

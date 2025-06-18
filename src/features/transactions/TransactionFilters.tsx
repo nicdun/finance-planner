@@ -98,12 +98,17 @@ export function TransactionFilters({
                 <Tag className="h-4 w-4" />
                 Kategorie
               </Label>
-              <Select value={selectedCategory} onValueChange={onCategoryChange}>
+              <Select
+                value={selectedCategory || "__all__"}
+                onValueChange={(value) =>
+                  onCategoryChange(value === "__all__" ? "" : value)
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Alle Kategorien" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Alle Kategorien</SelectItem>
+                  <SelectItem value="__all__">Alle Kategorien</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category} value={category}>
                       {category}
@@ -119,12 +124,17 @@ export function TransactionFilters({
                 <Building className="h-4 w-4" />
                 Konto
               </Label>
-              <Select value={selectedAccount} onValueChange={onAccountChange}>
+              <Select
+                value={selectedAccount || "__all__"}
+                onValueChange={(value) =>
+                  onAccountChange(value === "__all__" ? "" : value)
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Alle Konten" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Alle Konten</SelectItem>
+                  <SelectItem value="__all__">Alle Konten</SelectItem>
                   {accounts.map((account) => (
                     <SelectItem key={account.id} value={account.id}>
                       {account.name}
