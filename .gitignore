@@ -15,6 +15,7 @@ node_modules/
 .nuxt/
 .vuepress/dist
 .serverless/
+.vercel/
 
 # Runtime data
 pids

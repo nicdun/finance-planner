@@ -1,31 +1,17 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Separator } from "@/components/ui/separator";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertCircle,
   ArrowDownCircle,
   ArrowUpCircle,
   ArrowUpDown,
-  Bell,
   Car,
   Gamepad2,
-  Home,
   HomeIcon,
   Loader2,
-  LogOut,
-  Settings,
   ShoppingCart,
-  User,
   Utensils,
   Wand2,
   Zap,
@@ -34,7 +20,7 @@ import React, { useEffect, useMemo, useState } from "react";
 
 // Import database functions and types
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { useAuth } from "@/contexts/AuthContext";
+import { DashboardHeader } from "@/routes/dashboard/_components/DashboardHeader";
 import { createAccount, getAccounts } from "@/features/accounts/db";
 import { BankConnection } from "@/features/banking/BankConnection";
 import { BulkCategorizationPanel } from "@/features/transactions/BulkCategorizationPanel";
@@ -107,7 +93,6 @@ export const Route = createFileRoute("/transactions/")({
 });
 
 export function TransactionsPage() {
-  const { user, signOut } = useAuth();
   // State management
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -336,102 +321,7 @@ export function TransactionsPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <motion.header
-          className="bg-white border-b border-gray-200 px-6 py-4"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <Home className="h-5 w-5 text-white" />
-                </div>
-                <Link to="/">
-                  <h1 className="text-xl font-bold text-gray-900">
-                    FinanzPlaner
-                  </h1>
-                </Link>
-              </div>
-              <Separator orientation="vertical" className="h-6" />
-              <nav className="flex items-center gap-6">
-                <Link
-                  to="/dashboard"
-                  className="text-sm font-medium text-gray-600 hover:text-gray-900"
-                >
-                  Dashboard
-                </Link>
-                <span className="text-sm font-medium text-blue-600 border-b-2 border-blue-600 pb-1">
-                  Transaktionen
-                </span>
-                <a
-                  href="#"
-                  className="text-sm font-medium text-gray-600 hover:text-gray-900"
-                >
-                  Budgets
-                </a>
-                <a
-                  href="#"
-                  className="text-sm font-medium text-gray-600 hover:text-gray-900"
-                >
-                  Ziele
-                </a>
-              </nav>
-            </div>
-            <div className="flex items-center gap-4">
-              <BankConnection onAccountAdded={handleAccountAdded} />
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-gray-400 hover:text-gray-600"
-              >
-                <Bell className="h-5 w-5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="p-2 text-gray-400 hover:text-gray-600"
-              >
-                <Settings className="h-5 w-5" />
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 rounded-full p-0">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-blue-100 text-blue-600">
-                        <User className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <div className="flex items-center justify-start gap-2 p-2">
-                    <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium">{user?.email}</p>
-                    </div>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/dashboard" className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Dashboard</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={() => signOut()}
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Abmelden</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </motion.header>
+        <DashboardHeader onAccountAdded={handleAccountAdded} />
 
         {/* Main Content */}
         <main className="p-6">

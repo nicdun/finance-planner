@@ -1,60 +1,44 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { createFileRoute } from "@tanstack/react-router";
+import { motion } from "framer-motion";
 import {
   BarChart3,
-  PieChart,
-  Settings,
-  Bell,
-  User,
-  Home,
   CreditCard,
+  Loader2,
+  PieChart,
   Target,
   TrendingUp,
-  Loader2,
-  LogOut,
 } from "lucide-react";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
+import { DashboardHeader } from "./_components/DashboardHeader";
 
 // Import dashboard components
-import { FinancialSummary } from "@/features/dashboard/FinancialSummary";
+import { BankConnection } from "@/features/banking/BankConnection";
 import { AccountCard } from "@/features/dashboard/AccountCard";
 import { BudgetCard } from "@/features/dashboard/BudgetCard";
-import { GoalCard } from "@/features/dashboard/GoalCard";
 import { FinancialChart } from "@/features/dashboard/FinancialChart";
+import { FinancialSummary } from "@/features/dashboard/FinancialSummary";
+import { GoalCard } from "@/features/dashboard/GoalCard";
 import { RecentTransactions } from "@/features/dashboard/RecentTransactions";
-import { BankConnection } from "@/features/banking/BankConnection";
 
 // Import database functions
-import { getAccounts, createAccount } from "@/features/accounts/db";
-import { getTransactions } from "@/features/transactions/db";
+import { createAccount, getAccounts } from "@/features/accounts/db";
 import { getBudgets } from "@/features/budgets/db";
 import { getFinancialGoals } from "@/features/goals/db";
+import { getTransactions } from "@/features/transactions/db";
 
 // Import mock monthly data (still using mock for chart until we have real monthly aggregation)
 import { mockMonthlyData } from "@/lib/mock-data";
 
 // Import types
-import { Account, Transaction, Budget, FinancialGoal } from "@/lib/types";
+import { Account, Budget, FinancialGoal, Transaction } from "@/lib/types";
 
 export const Route = createFileRoute("/dashboard/")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  const { user, signOut } = useAuth();
   // State management for real data
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -113,97 +97,7 @@ function RouteComponent() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <motion.header
-          className="bg-white border-b border-gray-200 px-6 py-4"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <Home className="h-5 w-5 text-white" />
-                </div>
-                <Link to="/">
-                  <h1 className="text-xl font-bold text-gray-900">
-                    FinanzPlaner
-                  </h1>
-                </Link>
-              </div>
-              <Separator orientation="vertical" className="h-6" />
-              <nav className="flex items-center gap-6">
-                <a
-                  href="#"
-                  className="text-sm font-medium text-blue-600 border-b-2 border-blue-600 pb-1"
-                >
-                  Dashboard
-                </a>
-                <Link
-                  to="/transactions"
-                  className="text-sm font-medium text-gray-600 hover:text-gray-900"
-                >
-                  Transaktionen
-                </Link>
-                <a
-                  href="#"
-                  className="text-sm font-medium text-gray-600 hover:text-gray-900"
-                >
-                  Budgets
-                </a>
-                <a
-                  href="#"
-                  className="text-sm font-medium text-gray-600 hover:text-gray-900"
-                >
-                  Ziele
-                </a>
-              </nav>
-            </div>
-            <div className="flex items-center gap-4">
-              <BankConnection onAccountAdded={handleAccountAdded} />
-              <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
-                <Bell className="h-5 w-5" />
-              </button>
-              <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
-                <Settings className="h-5 w-5" />
-              </button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 rounded-full p-0">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-blue-100 text-blue-600">
-                        <User className="h-4 w-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <div className="flex items-center justify-start gap-2 p-2">
-                    <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium">{user?.email}</p>
-                    </div>
-                  </div>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to="/dashboard" className="cursor-pointer">
-                      <User className="mr-2 h-4 w-4" />
-                      <span>Dashboard</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={() => signOut()}
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Abmelden</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-        </motion.header>
+        <DashboardHeader onAccountAdded={handleAccountAdded} />
 
         {/* Main Content */}
         <main className="p-6">

@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TransactionsIndexRouteImport } from './routes/transactions/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as DashboardGoalsIndexRouteImport } from './routes/dashboard/goals/index'
+import { Route as DashboardEducationIndexRouteImport } from './routes/dashboard/education/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +30,69 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/dashboard/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardGoalsIndexRoute = DashboardGoalsIndexRouteImport.update({
+  id: '/dashboard/goals/',
+  path: '/dashboard/goals/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardEducationIndexRoute = DashboardEducationIndexRouteImport.update({
+  id: '/dashboard/education/',
+  path: '/dashboard/education/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/transactions': typeof TransactionsIndexRoute
+  '/dashboard/education': typeof DashboardEducationIndexRoute
+  '/dashboard/goals': typeof DashboardGoalsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardIndexRoute
   '/transactions': typeof TransactionsIndexRoute
+  '/dashboard/education': typeof DashboardEducationIndexRoute
+  '/dashboard/goals': typeof DashboardGoalsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/transactions/': typeof TransactionsIndexRoute
+  '/dashboard/education/': typeof DashboardEducationIndexRoute
+  '/dashboard/goals/': typeof DashboardGoalsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/transactions'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/transactions'
+    | '/dashboard/education'
+    | '/dashboard/goals'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/transactions'
-  id: '__root__' | '/' | '/dashboard/' | '/transactions/'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/transactions'
+    | '/dashboard/education'
+    | '/dashboard/goals'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard/'
+    | '/transactions/'
+    | '/dashboard/education/'
+    | '/dashboard/goals/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   TransactionsIndexRoute: typeof TransactionsIndexRoute
+  DashboardEducationIndexRoute: typeof DashboardEducationIndexRoute
+  DashboardGoalsIndexRoute: typeof DashboardGoalsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +118,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TransactionsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/_components/DashboardHeader': {
+      id: '/dashboard/_components/DashboardHeader'
+      path: ''
+      fullPath: '/dashboard/DashboardHeader'
+      preLoaderRoute: unknown
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/education/': {
+      id: '/dashboard/education/'
+      path: '/dashboard/education'
+      fullPath: '/dashboard/education'
+      preLoaderRoute: typeof DashboardEducationIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/goals/': {
+      id: '/dashboard/goals/'
+      path: '/dashboard/goals'
+      fullPath: '/dashboard/goals'
+      preLoaderRoute: typeof DashboardGoalsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/transactions/__tests__/index/test': {
+      id: '/transactions/__tests__/index/test'
+      path: ''
+      fullPath: '/transactions/index/test'
+      preLoaderRoute: unknown
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +153,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   TransactionsIndexRoute: TransactionsIndexRoute,
+  DashboardEducationIndexRoute: DashboardEducationIndexRoute,
+  DashboardGoalsIndexRoute: DashboardGoalsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
