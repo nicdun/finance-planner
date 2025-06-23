@@ -10,7 +10,9 @@ interface BudgetCardProps {
 }
 
 export function BudgetCard({ budget, index }: BudgetCardProps) {
-  const percentage = (budget.spentAmount / budget.budgetAmount) * 100;
+  const spentAmount = budget.spentAmount ?? 0;
+  const percentage =
+    budget.budgetAmount > 0 ? (spentAmount / budget.budgetAmount) * 100 : 0;
   const isOverBudget = percentage > 100;
   const isNearLimit = percentage > 80 && percentage <= 100;
 
@@ -67,7 +69,7 @@ export function BudgetCard({ budget, index }: BudgetCardProps) {
                 {new Intl.NumberFormat("de-DE", {
                   style: "currency",
                   currency: "EUR",
-                }).format(budget.spentAmount)}
+                }).format(spentAmount)}
               </span>
             </div>
             <div className="flex justify-between text-sm">
@@ -86,7 +88,7 @@ export function BudgetCard({ budget, index }: BudgetCardProps) {
                   {new Intl.NumberFormat("de-DE", {
                     style: "currency",
                     currency: "EUR",
-                  }).format(budget.budgetAmount - budget.spentAmount)}{" "}
+                  }).format(budget.budgetAmount - spentAmount)}{" "}
                   übrig
                 </span>
               </div>

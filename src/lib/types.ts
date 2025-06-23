@@ -23,6 +23,7 @@ export interface Budget {
   budgetAmount: number;
   period: "monthly" | "yearly";
   color: string;
+  spentAmount?: number;
 }
 
 export interface FinancialGoal {

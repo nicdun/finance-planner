@@ -30,7 +30,7 @@ import { FinancialTipsCard } from "@/features/dashboard/FinancialTipsCard";
 
 // Import database functions
 import { createAccount, getAccounts } from "@/features/accounts/db";
-import { getBudgets } from "@/features/budgets/db";
+import { getBudgetsWithSpending } from "@/features/budgets/db";
 import { getFinancialGoals } from "@/features/goals/db";
 import { getTransactions } from "@/features/transactions/db";
 import { checkBudgetAlerts } from "@/features/notifications/db";
@@ -226,7 +226,7 @@ function RouteComponent() {
           await Promise.all([
             getAccounts(),
             getTransactions(),
-            getBudgets(),
+            getBudgetsWithSpending(),
             getFinancialGoals(),
           ]);
 
