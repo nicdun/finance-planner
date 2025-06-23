@@ -21,7 +21,6 @@ export interface Budget {
   id: string;
   category: string;
   budgetAmount: number;
-  spentAmount: number;
   period: "monthly" | "yearly";
   color: string;
 }

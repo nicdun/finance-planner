@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { Budget } from "@/lib/types";
+import { Budget, Transaction } from "@/lib/types";
 
 // Budget functions
 export async function getBudgets(): Promise<Budget[]> {
@@ -17,7 +17,6 @@ export async function getBudgets(): Promise<Budget[]> {
     id: budget.id,
     category: budget.category,
     budgetAmount: parseFloat(budget.budget_amount.toString()),
-    spentAmount: parseFloat(budget.spent_amount.toString()),
     period: budget.period as Budget["period"],
     color: budget.color,
   }));
@@ -39,7 +38,6 @@ export async function createBudget(
     .insert({
       category: budget.category,
       budget_amount: budget.budgetAmount,
-      spent_amount: budget.spentAmount,
       period: budget.period,
       color: budget.color,
       user_id: user.id,
@@ -56,8 +54,166 @@ export async function createBudget(
     id: data.id,
     category: data.category,
     budgetAmount: parseFloat(data.budget_amount.toString()),
-    spentAmount: parseFloat(data.spent_amount.toString()),
     period: data.period as Budget["period"],
     color: data.color,
+  };
+}
+
+export async function updateBudget(
+  id: string,
+  updates: Partial<Omit<Budget, "id">>
+): Promise<Budget> {
+  const { data, error } = await supabase
+    .from("budgets")
+    .update({
+      ...(updates.category && { category: updates.category }),
+      ...(updates.budgetAmount && { budget_amount: updates.budgetAmount }),
+      ...(updates.period && { period: updates.period }),
+      ...(updates.color && { color: updates.color }),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Error updating budget:", error);
+    throw error;
+  }
+
+  return {
+    id: data.id,
+    category: data.category,
+    budgetAmount: parseFloat(data.budget_amount.toString()),
+    period: data.period as Budget["period"],
+    color: data.color,
+  };
+}
+
+export async function deleteBudget(id: string): Promise<void> {
+  const { error } = await supabase.from("budgets").delete().eq("id", id);
+
+  if (error) {
+    console.error("Error deleting budget:", error);
+    throw error;
+  }
+}
+
+// Function to calculate monthly spending by category from transactions
+export async function getMonthlySpendingByCategory(
+  year: number,
+  month: number
+): Promise<Record<string, number>> {
+  // Get current user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
+
+  // Calculate date range for the month
+  const startDate = new Date(year, month - 1, 1).toISOString().split("T")[0];
+  const endDate = new Date(year, month, 0).toISOString().split("T")[0];
+
+  console.log(
+    `Calculating spending for ${year}-${month}, date range: ${startDate} to ${endDate}`
+  );
+
+  const { data, error } = await supabase
+    .from("transactions")
+    .select("category, amount")
+    .eq("user_id", user.id)
+    .eq("type", "expense")
+    .gte("date", startDate)
+    .lte("date", endDate);
+
+  if (error) {
+    console.error(
+      "Error fetching transactions for spending calculation:",
+      error
+    );
+    throw error;
+  }
+
+  console.log("Raw transactions found:", data);
+
+  const spendingByCategory: Record<string, number> = {};
+
+  data.forEach((transaction) => {
+    const category = transaction.category;
+    const amount = parseFloat(transaction.amount.toString());
+    // Convert negative expense amounts to positive spending amounts
+    const spentAmount = Math.abs(amount);
+
+    console.log(
+      `Transaction: ${category}, amount: ${amount}, spentAmount: ${spentAmount}`
+    );
+
+    if (spendingByCategory[category]) {
+      spendingByCategory[category] += spentAmount;
+    } else {
+      spendingByCategory[category] = spentAmount;
+    }
+  });
+
+  console.log("Final spending by category:", spendingByCategory);
+  return spendingByCategory;
+}
+
+// Function to get current month spending for a specific category
+export async function getCurrentMonthSpending(
+  category: string
+): Promise<number> {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+
+  const spendingByCategory = await getMonthlySpendingByCategory(
+    currentYear,
+    currentMonth
+  );
+  return spendingByCategory[category] || 0;
+}
+
+// Enhanced function to get budgets with calculated spending
+export async function getBudgetsWithSpending(): Promise<
+  (Budget & { spentAmount: number })[]
+> {
+  const budgets = await getBudgets();
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+
+  const spendingByCategory = await getMonthlySpendingByCategory(
+    currentYear,
+    currentMonth
+  );
+
+  return budgets.map((budget) => ({
+    ...budget,
+    spentAmount: spendingByCategory[budget.category] || 0,
+  }));
+}
+
+// Utility function to get budget progress statistics with calculated spending
+export function getBudgetProgressStats(
+  budget: Budget & { spentAmount: number }
+) {
+  const progressPercentage =
+    budget.budgetAmount > 0
+      ? Math.max(0, (budget.spentAmount / budget.budgetAmount) * 100)
+      : 0;
+  const remainingAmount = budget.budgetAmount - budget.spentAmount;
+  const isOverBudget = budget.spentAmount > budget.budgetAmount;
+  const overAmount = isOverBudget
+    ? budget.spentAmount - budget.budgetAmount
+    : 0;
+
+  return {
+    progressPercentage,
+    remainingAmount,
+    isOverBudget,
+    overAmount,
   };
 }
