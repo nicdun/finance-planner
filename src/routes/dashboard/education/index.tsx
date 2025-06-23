@@ -22,7 +22,7 @@ import React, { useState } from "react";
 import { ChapterContent } from "@/features/education/ChapterContent";
 import { LearningPathCard } from "@/features/education/LearningPathCard";
 import { QuizComponent } from "@/features/education/QuizComponent";
-import { DashboardHeader } from "../_components/DashboardHeader";
+import { DashboardHeader } from "../-components/DashboardHeader";
 
 // Import database functions and utilities
 

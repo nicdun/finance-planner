@@ -12,4 +12,4 @@ This rule provides standards for tech stack, ensuring consistent coding, styling
 - **animation**: framer motion
 - **frontend framework**: tanstack start
 - **backend framework**: tanstack start
-- **database**: in memory mocked
+- **database**: supabase (PostgreSQL)

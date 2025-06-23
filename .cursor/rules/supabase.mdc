@@ -5,3 +5,4 @@ alwaysApply: true
 ---
 # Database
 - Always apply database migrations via a migration file in `supabase/migrations` and execute the migration via CLI not the MCP tool.
+- do not execute SQL migrations without asking the user for permission.

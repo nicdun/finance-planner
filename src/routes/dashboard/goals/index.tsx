@@ -14,7 +14,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { DashboardHeader } from "../_components/DashboardHeader";
+import { DashboardHeader } from "../-components/DashboardHeader";
 import { FinancialGoal } from "@/lib/types";
 import {
   getFinancialGoals,

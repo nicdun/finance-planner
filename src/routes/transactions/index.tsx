@@ -20,7 +20,7 @@ import React, { useEffect, useMemo, useState } from "react";
 
 // Import database functions and types
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { DashboardHeader } from "@/routes/dashboard/_components/DashboardHeader";
+import { DashboardHeader } from "@/routes/dashboard/-components/DashboardHeader";
 import { createAccount, getAccounts } from "@/features/accounts/db";
 import { BankConnection } from "@/features/banking/BankConnection";
 import { BulkCategorizationPanel } from "@/features/transactions/BulkCategorizationPanel";

@@ -11,7 +11,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { DashboardHeader } from "./_components/DashboardHeader";
+import { DashboardHeader } from "./-components/DashboardHeader";
 
 // Import dashboard components
 import { BankConnection } from "@/features/banking/BankConnection";
