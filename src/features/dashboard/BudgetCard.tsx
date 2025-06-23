@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Budget } from "@/lib/types";
-import { AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { AlertTriangle, CheckCircle, Clock, Star } from "lucide-react";
 
 interface BudgetCardProps {
   budget: Budget;
@@ -42,8 +42,11 @@ export function BudgetCard({ budget, index }: BudgetCardProps) {
     >
       <Card className="hover:shadow-lg transition-shadow duration-200">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
             {budget.category}
+            {budget.isTopBudget && (
+              <Star className="h-3 w-3 text-yellow-500 fill-current" />
+            )}
           </CardTitle>
           <div className="flex items-center gap-2">
             {getStatusIcon()}

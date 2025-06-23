@@ -24,6 +24,7 @@ export interface Budget {
   period: "monthly" | "yearly";
   color: string;
   spentAmount?: number;
+  isTopBudget?: boolean;
 }
 
 export interface FinancialGoal {

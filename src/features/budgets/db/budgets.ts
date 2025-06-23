@@ -19,6 +19,7 @@ export async function getBudgets(): Promise<Budget[]> {
     budgetAmount: parseFloat(budget.budget_amount.toString()),
     period: budget.period as Budget["period"],
     color: budget.color,
+    isTopBudget: budget.is_top_budget,
   }));
 }
 
@@ -40,6 +41,7 @@ export async function createBudget(
       budget_amount: budget.budgetAmount,
       period: budget.period,
       color: budget.color,
+      is_top_budget: budget.isTopBudget || false,
       user_id: user.id,
     })
     .select()
@@ -56,6 +58,7 @@ export async function createBudget(
     budgetAmount: parseFloat(data.budget_amount.toString()),
     period: data.period as Budget["period"],
     color: data.color,
+    isTopBudget: data.is_top_budget,
   };
 }
 
@@ -70,6 +73,9 @@ export async function updateBudget(
       ...(updates.budgetAmount && { budget_amount: updates.budgetAmount }),
       ...(updates.period && { period: updates.period }),
       ...(updates.color && { color: updates.color }),
+      ...(updates.isTopBudget !== undefined && {
+        is_top_budget: updates.isTopBudget,
+      }),
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
@@ -87,6 +93,7 @@ export async function updateBudget(
     budgetAmount: parseFloat(data.budget_amount.toString()),
     period: data.period as Budget["period"],
     color: data.color,
+    isTopBudget: data.is_top_budget,
   };
 }
 
@@ -194,6 +201,22 @@ export async function getBudgetsWithSpending(): Promise<
     ...budget,
     spentAmount: spendingByCategory[budget.category] || 0,
   }));
+}
+
+// Function to get only top budgets with spending data
+export async function getTopBudgetsWithSpending(): Promise<
+  (Budget & { spentAmount: number })[]
+> {
+  const allBudgets = await getBudgetsWithSpending();
+  return allBudgets.filter((budget) => budget.isTopBudget);
+}
+
+// Function to toggle top budget status
+export async function toggleTopBudget(
+  budgetId: string,
+  isTopBudget: boolean
+): Promise<Budget> {
+  return updateBudget(budgetId, { isTopBudget });
 }
 
 // Utility function to get budget progress statistics with calculated spending

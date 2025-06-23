@@ -13,6 +13,8 @@ import {
   Edit2,
   Trash2,
   AlertTriangle,
+  Star,
+  StarOff,
 } from "lucide-react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { DashboardHeader } from "../-components/DashboardHeader";
@@ -21,6 +23,7 @@ import {
   getBudgetsWithSpending,
   deleteBudget,
   getBudgetProgressStats,
+  toggleTopBudget,
 } from "@/features/budgets/db";
 import { CreateBudgetDialog } from "@/features/budgets/CreateBudgetDialog";
 import { EditBudgetDialog } from "@/features/budgets/EditBudgetDialog";
@@ -78,6 +81,19 @@ function BudgetPage() {
   const handleBudgetUpdated = () => {
     setEditingBudget(null);
     loadBudgets();
+  };
+
+  const handleToggleTopBudget = async (
+    budgetId: string,
+    currentStatus: boolean
+  ) => {
+    try {
+      await toggleTopBudget(budgetId, !currentStatus);
+      await loadBudgets();
+    } catch (err) {
+      console.error("Error toggling top budget:", err);
+      alert("Fehler beim Aktualisieren des Top-Budget Status");
+    }
   };
 
   if (loading) {
@@ -249,6 +265,7 @@ function BudgetPage() {
                     })
                   }
                   onDelete={() => handleDeleteBudget(budget.id)}
+                  onToggleTopBudget={handleToggleTopBudget}
                 />
               ))}
             </div>
@@ -280,9 +297,16 @@ interface BudgetCardProps {
   index: number;
   onEdit: () => void;
   onDelete: () => void;
+  onToggleTopBudget: (budgetId: string, currentStatus: boolean) => void;
 }
 
-function BudgetCard({ budget, index, onEdit, onDelete }: BudgetCardProps) {
+function BudgetCard({
+  budget,
+  index,
+  onEdit,
+  onDelete,
+  onToggleTopBudget,
+}: BudgetCardProps) {
   const stats = getBudgetProgressStats(budget);
 
   const formatCurrency = (amount: number) => {
@@ -341,6 +365,29 @@ function BudgetCard({ budget, index, onEdit, onDelete }: BudgetCardProps) {
               </div>
             </div>
             <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  onToggleTopBudget(budget.id, budget.isTopBudget || false)
+                }
+                className={`h-8 w-8 p-0 ${
+                  budget.isTopBudget
+                    ? "text-yellow-600 hover:text-yellow-700"
+                    : "text-gray-400 hover:text-yellow-600"
+                }`}
+                title={
+                  budget.isTopBudget
+                    ? "Als Top-Budget entfernen"
+                    : "Als Top-Budget markieren"
+                }
+              >
+                {budget.isTopBudget ? (
+                  <Star className="h-3 w-3 fill-current" />
+                ) : (
+                  <StarOff className="h-3 w-3" />
+                )}
+              </Button>
               <Button
                 variant="ghost"
                 size="sm"

@@ -30,7 +30,10 @@ import { FinancialTipsCard } from "@/features/dashboard/FinancialTipsCard";
 
 // Import database functions
 import { createAccount, getAccounts } from "@/features/accounts/db";
-import { getBudgetsWithSpending } from "@/features/budgets/db";
+import {
+  getBudgetsWithSpending,
+  getTopBudgetsWithSpending,
+} from "@/features/budgets/db";
 import { getFinancialGoals } from "@/features/goals/db";
 import { getTransactions } from "@/features/transactions/db";
 import { checkBudgetAlerts } from "@/features/notifications/db";
@@ -191,6 +194,9 @@ function RouteComponent() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [topBudgets, setTopBudgets] = useState<
+    (Budget & { spentAmount: number })[]
+  >([]);
   const [goals, setGoals] = useState<FinancialGoal[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -222,17 +228,24 @@ function RouteComponent() {
       try {
         setLoading(true);
 
-        const [accountsData, transactionsData, budgetsData, goalsData] =
-          await Promise.all([
-            getAccounts(),
-            getTransactions(),
-            getBudgetsWithSpending(),
-            getFinancialGoals(),
-          ]);
+        const [
+          accountsData,
+          transactionsData,
+          budgetsData,
+          topBudgetsData,
+          goalsData,
+        ] = await Promise.all([
+          getAccounts(),
+          getTransactions(),
+          getBudgetsWithSpending(),
+          getTopBudgetsWithSpending(),
+          getFinancialGoals(),
+        ]);
 
         setAccounts(accountsData);
         setTransactions(transactionsData);
         setBudgets(budgetsData);
+        setTopBudgets(topBudgetsData);
         setGoals(goalsData);
 
         // Check for budget alerts
@@ -279,8 +292,8 @@ function RouteComponent() {
         <DashboardHeader onAccountAdded={handleAccountAdded} />
 
         {/* Main Content */}
-        <main className="p-6">
-          <div className="max-w-7xl mx-auto space-y-6">
+        <main className="p-3 sm:p-6">
+          <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
             {/* Welcome Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -307,37 +320,45 @@ function RouteComponent() {
 
             {/* Main Dashboard Tabs */}
             <Tabs defaultValue="overview" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger
-                  value="overview"
-                  className="flex items-center gap-2"
-                >
-                  <BarChart3 className="h-4 w-4" />
-                  Übersicht
-                </TabsTrigger>
-                <TabsTrigger
-                  value="accounts"
-                  className="flex items-center gap-2"
-                >
-                  <CreditCard className="h-4 w-4" />
-                  Konten
-                </TabsTrigger>
-                <TabsTrigger
-                  value="budgets"
-                  className="flex items-center gap-2"
-                >
-                  <PieChart className="h-4 w-4" />
-                  Budgets
-                </TabsTrigger>
-                <TabsTrigger value="goals" className="flex items-center gap-2">
-                  <Target className="h-4 w-4" />
-                  Ziele
-                </TabsTrigger>
-                <TabsTrigger value="tips" className="flex items-center gap-2">
-                  <Lightbulb className="h-4 w-4" />
-                  Tipps
-                </TabsTrigger>
-              </TabsList>
+              <div className="overflow-x-auto">
+                <TabsList className="grid w-full grid-cols-5 md:grid-cols-5 min-w-fit">
+                  <TabsTrigger
+                    value="overview"
+                    className="flex items-center gap-1 md:gap-2 px-2 md:px-4 whitespace-nowrap"
+                  >
+                    <BarChart3 className="h-4 w-4 flex-shrink-0" />
+                    <span className="hidden sm:inline">Übersicht</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="accounts"
+                    className="flex items-center gap-1 md:gap-2 px-2 md:px-4 whitespace-nowrap"
+                  >
+                    <CreditCard className="h-4 w-4 flex-shrink-0" />
+                    <span className="hidden sm:inline">Konten</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="budgets"
+                    className="flex items-center gap-1 md:gap-2 px-2 md:px-4 whitespace-nowrap"
+                  >
+                    <PieChart className="h-4 w-4 flex-shrink-0" />
+                    <span className="hidden sm:inline">Budgets</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="goals"
+                    className="flex items-center gap-1 md:gap-2 px-2 md:px-4 whitespace-nowrap"
+                  >
+                    <Target className="h-4 w-4 flex-shrink-0" />
+                    <span className="hidden sm:inline">Ziele</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="tips"
+                    className="flex items-center gap-1 md:gap-2 px-2 md:px-4 whitespace-nowrap"
+                  >
+                    <Lightbulb className="h-4 w-4 flex-shrink-0" />
+                    <span className="hidden sm:inline">Tipps</span>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
               <TabsContent value="overview" className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -363,13 +384,23 @@ function RouteComponent() {
                       Top Budgets
                     </h3>
                     <div className="space-y-3">
-                      {budgets.slice(0, 3).map((budget, index) => (
-                        <BudgetCard
-                          key={budget.id}
-                          budget={budget}
-                          index={index}
-                        />
-                      ))}
+                      {topBudgets.length > 0 ? (
+                        topBudgets.map((budget, index) => (
+                          <BudgetCard
+                            key={budget.id}
+                            budget={budget}
+                            index={index}
+                          />
+                        ))
+                      ) : (
+                        <div className="text-center py-8 text-gray-500">
+                          <p className="text-sm">Keine Top-Budgets markiert</p>
+                          <p className="text-xs">
+                            Markieren Sie Budgets auf der Budget-Seite als
+                            Favoriten
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -415,10 +446,16 @@ function RouteComponent() {
 
               <TabsContent value="budgets" className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <PieChart className="h-5 w-5" />
-                    Budget-Übersicht
-                  </h3>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <PieChart className="h-5 w-5" />
+                      Budget-Übersicht
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {topBudgets.length} von {budgets.length} als Top-Budget
+                      markiert
+                    </p>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {budgets.map((budget, index) => (
                       <BudgetCard
