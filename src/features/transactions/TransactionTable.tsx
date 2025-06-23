@@ -47,6 +47,8 @@ interface TransactionTableProps {
     transactionIds: string[],
     newCategory: string
   ) => void;
+  onEditTransaction?: (transaction: Transaction) => void;
+  onDeleteTransaction?: (transactionId: string) => void;
 }
 
 const categoryIcons: Record<string, React.ReactNode> = {
@@ -89,6 +91,8 @@ export function TransactionTable({
   sortDirection = "desc",
   onCategoryChange,
   onBulkCategoryChange,
+  onEditTransaction,
+  onDeleteTransaction,
 }: TransactionTableProps) {
   const formatAmount = (amount: number) => {
     const isPositive = amount > 0;
@@ -272,11 +276,18 @@ export function TransactionTable({
                         ID kopieren
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => onEditTransaction?.(transaction)}
+                        disabled={!onEditTransaction}
+                      >
                         <Edit className="mr-2 h-4 w-4" />
                         Bearbeiten
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600">
+                      <DropdownMenuItem
+                        className="text-red-600"
+                        onClick={() => onDeleteTransaction?.(transaction.id)}
+                        disabled={!onDeleteTransaction}
+                      >
                         <Trash2 className="mr-2 h-4 w-4" />
                         Löschen
                       </DropdownMenuItem>

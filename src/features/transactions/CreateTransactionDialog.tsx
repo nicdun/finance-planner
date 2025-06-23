@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { CalendarDays, Receipt } from "lucide-react";
@@ -38,7 +38,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { createTransaction } from "@/features/transactions/db";
+import {
+  createTransaction,
+  updateTransaction,
+} from "@/features/transactions/db";
 import { Transaction, Account } from "@/lib/types";
 
 interface CreateTransactionDialogProps {
@@ -46,6 +49,7 @@ interface CreateTransactionDialogProps {
   onOpenChange: (open: boolean) => void;
   onTransactionCreated: () => void;
   accounts: Account[];
+  editingTransaction?: Transaction | null;
 }
 
 interface CreateTransactionFormData {
@@ -87,8 +91,10 @@ export function CreateTransactionDialog({
   onOpenChange,
   onTransactionCreated,
   accounts,
+  editingTransaction,
 }: CreateTransactionDialogProps) {
   const [loading, setLoading] = useState(false);
+  const isEditing = !!editingTransaction;
 
   const form = useForm<CreateTransactionFormData>({
     defaultValues: {
@@ -100,6 +106,31 @@ export function CreateTransactionDialog({
       type: "expense",
     },
   });
+
+  // Reset form when dialog opens/closes or when editing transaction changes
+  React.useEffect(() => {
+    if (open && editingTransaction) {
+      // Populate form with editing transaction data
+      form.reset({
+        accountId: editingTransaction.accountId,
+        amount: Math.abs(editingTransaction.amount), // Always show as positive in form
+        description: editingTransaction.description,
+        category: editingTransaction.category,
+        date: new Date(editingTransaction.date),
+        type: editingTransaction.type,
+      });
+    } else if (open && !editingTransaction) {
+      // Reset to default values for new transaction
+      form.reset({
+        accountId: "",
+        amount: 0,
+        description: "",
+        category: "",
+        date: new Date(),
+        type: "expense",
+      });
+    }
+  }, [open, editingTransaction, form]);
 
   const watchedType = form.watch("type");
 
@@ -113,23 +144,45 @@ export function CreateTransactionDialog({
           ? -Math.abs(data.amount)
           : Math.abs(data.amount);
 
-      const transactionData: Omit<Transaction, "id"> = {
-        accountId: data.accountId,
-        amount: adjustedAmount,
-        description: data.description,
-        category: data.category,
-        date: data.date.toISOString().split("T")[0],
-        type: data.type,
-      };
+      if (isEditing && editingTransaction) {
+        // Update existing transaction
+        const updatedTransaction: Partial<Transaction> = {
+          accountId: data.accountId,
+          amount: adjustedAmount,
+          description: data.description,
+          category: data.category,
+          date: data.date.toISOString().split("T")[0],
+          type: data.type,
+        };
 
-      await createTransaction(transactionData);
+        await updateTransaction(editingTransaction.id, updatedTransaction);
+      } else {
+        // Create new transaction
+        const transactionData: Omit<Transaction, "id"> = {
+          accountId: data.accountId,
+          amount: adjustedAmount,
+          description: data.description,
+          category: data.category,
+          date: data.date.toISOString().split("T")[0],
+          type: data.type,
+        };
+
+        await createTransaction(transactionData);
+      }
 
       form.reset();
       onTransactionCreated();
       onOpenChange(false);
     } catch (error) {
-      console.error("Error creating transaction:", error);
-      alert("Fehler beim Erstellen der Transaktion");
+      console.error(
+        `Error ${isEditing ? "updating" : "creating"} transaction:`,
+        error
+      );
+      alert(
+        `Fehler beim ${
+          isEditing ? "Aktualisieren" : "Erstellen"
+        } der Transaktion`
+      );
     } finally {
       setLoading(false);
     }
@@ -165,10 +218,14 @@ export function CreateTransactionDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Receipt className="h-5 w-5" />
-            Neue Transaktion erstellen
+            {isEditing
+              ? "Transaktion bearbeiten"
+              : "Neue Transaktion erstellen"}
           </DialogTitle>
           <DialogDescription>
-            Fügen Sie eine manuelle Transaktion zu Ihrem Konto hinzu.
+            {isEditing
+              ? "Bearbeiten Sie die Transaktionsdetails."
+              : "Fügen Sie eine manuelle Transaktion zu Ihrem Konto hinzu."}
           </DialogDescription>
         </DialogHeader>
 
@@ -411,7 +468,13 @@ export function CreateTransactionDialog({
                 Abbrechen
               </Button>
               <Button type="submit" disabled={loading || accounts.length === 0}>
-                {loading ? "Erstelle..." : "Transaktion erstellen"}
+                {loading
+                  ? isEditing
+                    ? "Aktualisiere..."
+                    : "Erstelle..."
+                  : isEditing
+                  ? "Transaktion aktualisieren"
+                  : "Transaktion erstellen"}
               </Button>
             </DialogFooter>
           </form>

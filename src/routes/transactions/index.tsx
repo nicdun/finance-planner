@@ -27,6 +27,7 @@ import { BankConnection } from "@/features/banking/BankConnection";
 import { BulkCategorizationPanel } from "@/features/transactions/BulkCategorizationPanel";
 import {
   bulkUpdateTransactionCategories,
+  deleteTransaction,
   getTransactions,
   updateTransactionCategory,
 } from "@/features/transactions/db";
@@ -109,6 +110,8 @@ export function TransactionsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateTransaction, setShowCreateTransaction] = useState(false);
+  const [editingTransaction, setEditingTransaction] =
+    useState<Transaction | null>(null);
 
   // Load data from Supabase
   const loadData = async () => {
@@ -224,6 +227,41 @@ export function TransactionsPage() {
       setTransactions(transactionsData);
     } catch (error) {
       console.error("Error reloading transactions:", error);
+    }
+  };
+
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setShowCreateTransaction(true);
+  };
+
+  const handleDeleteTransaction = async (transactionId: string) => {
+    if (
+      !confirm("Sind Sie sicher, dass Sie diese Transaktion löschen möchten?")
+    ) {
+      return;
+    }
+
+    try {
+      await deleteTransaction(transactionId);
+      // Reload transactions after deletion
+      const transactionsData = await getTransactions();
+      setTransactions(transactionsData);
+    } catch (error) {
+      console.error("Error deleting transaction:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Fehler beim Löschen der Transaktion"
+      );
+    }
+  };
+
+  const handleDialogClose = (open: boolean) => {
+    setShowCreateTransaction(open);
+    if (!open) {
+      // Reset editing transaction when dialog closes
+      setEditingTransaction(null);
     }
   };
 
@@ -540,6 +578,8 @@ export function TransactionsPage() {
                         sortDirection={sortDirection}
                         onCategoryChange={handleCategoryChange}
                         onBulkCategoryChange={handleBulkCategoryChange}
+                        onEditTransaction={handleEditTransaction}
+                        onDeleteTransaction={handleDeleteTransaction}
                       />
                     </CardContent>
                   </Card>
@@ -549,12 +589,13 @@ export function TransactionsPage() {
           </div>
         </main>
 
-        {/* Create Transaction Dialog */}
+        {/* Create/Edit Transaction Dialog */}
         <CreateTransactionDialog
           open={showCreateTransaction}
-          onOpenChange={setShowCreateTransaction}
+          onOpenChange={handleDialogClose}
           onTransactionCreated={handleTransactionCreated}
           accounts={accounts}
+          editingTransaction={editingTransaction}
         />
       </div>
     </ProtectedRoute>
