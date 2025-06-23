@@ -13,6 +13,7 @@ import {
 import { Settings, Bell, User, Home, LogOut, Menu, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { BankConnection } from "@/features/banking/BankConnection";
+import { NotificationCenter } from "@/features/dashboard/NotificationCenter";
 import { Account } from "@/lib/types";
 import { useState } from "react";
 
@@ -119,9 +120,7 @@ export function DashboardHeader({ onAccountAdded }: DashboardHeaderProps) {
               {onAccountAdded && (
                 <BankConnection onAccountAdded={onAccountAdded} />
               )}
-              <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
-                <Bell className="h-5 w-5" />
-              </button>
+              <NotificationCenter />
               <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
                 <Settings className="h-5 w-5" />
               </button>
@@ -268,10 +267,9 @@ export function DashboardHeader({ onAccountAdded }: DashboardHeaderProps) {
                       <BankConnection onAccountAdded={onAccountAdded} />
                     </div>
                   )}
-                  <button className="flex items-center gap-3 w-full p-3 text-left text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg">
-                    <Bell className="h-5 w-5" />
-                    <span>Benachrichtigungen</span>
-                  </button>
+                  <div className="mb-4">
+                    <NotificationCenter className="w-full" />
+                  </div>
                   <button className="flex items-center gap-3 w-full p-3 text-left text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg">
                     <Settings className="h-5 w-5" />
                     <span>Einstellungen</span>

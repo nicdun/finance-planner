@@ -1,5 +1,13 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { MonthlyData } from "@/lib/types";
 import {
   AreaChart,
@@ -14,17 +22,26 @@ import {
   Legend,
 } from "recharts";
 
+export type TimePeriod = "12months" | "2years" | "5years";
+
 interface FinancialChartProps {
   data: MonthlyData[];
   type: "area" | "bar";
   title: string;
+  onTimePeriodChange?: (period: TimePeriod) => void;
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
+    // Get the year from the payload data
+    const year = payload[0]?.payload?.year || new Date().getFullYear();
+    // Format the label based on whether it's a quarter or month
+    const isQuarter = label?.startsWith("Q");
+    const displayLabel = isQuarter ? `${label} ${year}` : `${label} ${year}`;
+
     return (
       <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-        <p className="font-medium text-gray-900">{`${label} 2024`}</p>
+        <p className="font-medium text-gray-900">{displayLabel}</p>
         {payload.map((entry: any, index: number) => (
           <p key={index} className="text-sm" style={{ color: entry.color }}>
             {`${entry.name}: ${new Intl.NumberFormat("de-DE", {
@@ -39,7 +56,32 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export function FinancialChart({ data, type, title }: FinancialChartProps) {
+export function FinancialChart({
+  data,
+  type,
+  title,
+  onTimePeriodChange,
+}: FinancialChartProps) {
+  const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>("12months");
+
+  const handlePeriodChange = (period: TimePeriod) => {
+    setSelectedPeriod(period);
+    onTimePeriodChange?.(period);
+  };
+
+  const getPeriodLabel = (period: TimePeriod) => {
+    switch (period) {
+      case "12months":
+        return "12 Monate";
+      case "2years":
+        return "2 Jahre";
+      case "5years":
+        return "5 Jahre";
+      default:
+        return "12 Monate";
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -48,7 +90,19 @@ export function FinancialChart({ data, type, title }: FinancialChartProps) {
     >
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+            <Select value={selectedPeriod} onValueChange={handlePeriodChange}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="12months">12 Monate</SelectItem>
+                <SelectItem value="2years">2 Jahre</SelectItem>
+                <SelectItem value="5years">5 Jahre</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="h-80">

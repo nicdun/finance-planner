@@ -1,0 +1,10 @@
+# Cron job configuration for auto-notifications function
+# This will run the function every hour to create example notifications
+
+version: 1
+jobs:
+  - name: "auto-notifications-hourly"
+    schedule: "0 * * * *"  # Run every hour at the top of the hour
+    function_name: "auto-notifications"
+    enabled: true
+    description: "Automatically generate example notifications every hour for testing" 

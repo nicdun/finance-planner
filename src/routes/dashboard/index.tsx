@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import {
   BarChart3,
   CreditCard,
+  Lightbulb,
   Loader2,
   PieChart,
   Target,
@@ -18,16 +19,21 @@ import { DashboardHeader } from "./-components/DashboardHeader";
 import { BankConnection } from "@/features/banking/BankConnection";
 import { AccountCard } from "@/features/dashboard/AccountCard";
 import { BudgetCard } from "@/features/dashboard/BudgetCard";
-import { FinancialChart } from "@/features/dashboard/FinancialChart";
+import {
+  FinancialChart,
+  TimePeriod,
+} from "@/features/dashboard/FinancialChart";
 import { FinancialSummary } from "@/features/dashboard/FinancialSummary";
 import { GoalCard } from "@/features/dashboard/GoalCard";
 import { RecentTransactions } from "@/features/dashboard/RecentTransactions";
+import { FinancialTipsCard } from "@/features/dashboard/FinancialTipsCard";
 
 // Import database functions
 import { createAccount, getAccounts } from "@/features/accounts/db";
 import { getBudgets } from "@/features/budgets/db";
 import { getFinancialGoals } from "@/features/goals/db";
 import { getTransactions } from "@/features/transactions/db";
+import { checkBudgetAlerts } from "@/features/notifications/db";
 
 // Import types
 import {
@@ -36,7 +42,12 @@ import {
   FinancialGoal,
   Transaction,
   MonthlyData,
+  FinancialTip,
 } from "@/lib/types";
+
+// Import utilities
+import { generateFinancialTips } from "@/lib/financial-tips";
+import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 
 export const Route = createFileRoute("/dashboard/")({
   component: RouteComponent,
@@ -44,7 +55,8 @@ export const Route = createFileRoute("/dashboard/")({
 
 // Utility function to process transactions into monthly data - shows last 12 months
 function processTransactionsToMonthlyData(
-  transactions: Transaction[]
+  transactions: Transaction[],
+  timePeriod: "12months" | "2years" | "5years" = "12months"
 ): MonthlyData[] {
   const monthNames = [
     "Jan",
@@ -61,63 +73,117 @@ function processTransactionsToMonthlyData(
     "Dez",
   ];
 
-  // Create a simple map to group transactions by month-year
-  const monthlyMap = new Map<
-    string,
-    { income: number; expenses: number; month: string }
-  >();
+  // For longer periods, we'll aggregate data differently
+  if (timePeriod === "12months") {
+    // Generate monthly data for 12 months
+    const now = new Date();
+    const timeData: MonthlyData[] = [];
 
-  // Process each transaction
-  transactions.forEach((transaction) => {
-    try {
-      const date = new Date(transaction.date);
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const year = date.getFullYear();
-      const month = date.getMonth(); // 0-11
-      const monthKey = `${year}-${month.toString().padStart(2, "0")}`;
+      const month = date.getMonth();
       const monthName = monthNames[month];
 
-      // Initialize month if not exists
-      if (!monthlyMap.has(monthKey)) {
-        monthlyMap.set(monthKey, {
+      timeData.push({
+        month: monthName,
+        year: year,
+        income: 0,
+        expenses: 0,
+        savings: 0,
+      });
+    }
+
+    // Process transactions
+    transactions.forEach((transaction) => {
+      try {
+        const date = new Date(transaction.date);
+        const year = date.getFullYear();
+        const month = date.getMonth();
+
+        const monthData = timeData.find(
+          (m) => m.year === year && monthNames[month] === m.month
+        );
+
+        if (monthData) {
+          if (transaction.type === "income") {
+            monthData.income += Number(transaction.amount);
+          } else if (transaction.type === "expense") {
+            monthData.expenses += Math.abs(Number(transaction.amount));
+          }
+        }
+      } catch (error) {
+        console.error("Error processing transaction:", transaction, error);
+      }
+    });
+
+    // Calculate savings
+    timeData.forEach((monthData) => {
+      monthData.savings = Math.max(0, monthData.income - monthData.expenses);
+    });
+
+    return timeData;
+  } else {
+    // For 2 years and 5 years, aggregate by quarters
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentQuarter = Math.floor(now.getMonth() / 3); // 0-3
+    const yearsToGenerate = timePeriod === "2years" ? 2 : 5;
+    const timeData: MonthlyData[] = [];
+
+    // Generate quarterly data, only up to current quarter
+    for (let yearOffset = yearsToGenerate - 1; yearOffset >= 0; yearOffset--) {
+      const year = currentYear - yearOffset;
+
+      // Determine how many quarters to include for this year
+      const maxQuarter = year === currentYear ? currentQuarter : 3; // 0-3
+
+      // Q1, Q2, Q3, Q4 (but only up to current quarter for current year)
+      for (let quarter = 0; quarter <= maxQuarter; quarter++) {
+        timeData.push({
+          month: `Q${quarter + 1}`,
+          year: year,
           income: 0,
           expenses: 0,
-          month: monthName,
+          savings: 0,
         });
       }
-
-      const monthData = monthlyMap.get(monthKey)!;
-
-      // Add to appropriate category
-      if (transaction.type === "income") {
-        monthData.income += Number(transaction.amount);
-      } else if (transaction.type === "expense") {
-        monthData.expenses += Math.abs(Number(transaction.amount));
-      }
-    } catch (error) {
-      console.error("Error processing transaction:", transaction, error);
     }
-  });
 
-  // Convert map to array and sort chronologically
-  const monthlyArray = Array.from(monthlyMap.entries())
-    .map(([key, data]) => {
-      const [year, month] = key.split("-");
-      return {
-        ...data,
-        year: Number(year),
-        monthIndex: Number(month),
-        sortKey: key,
-      };
-    })
-    .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
-    .map((data) => ({
-      month: data.month,
-      income: data.income,
-      expenses: data.expenses,
-      savings: Math.max(0, data.income - data.expenses),
-    }));
+    // Process transactions into quarters
+    transactions.forEach((transaction) => {
+      try {
+        const date = new Date(transaction.date);
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        const quarter = Math.floor(month / 3); // 0-3
 
-  return monthlyArray;
+        const quarterData = timeData.find(
+          (m) => m.year === year && m.month === `Q${quarter + 1}`
+        );
+
+        if (quarterData) {
+          if (transaction.type === "income") {
+            quarterData.income += Number(transaction.amount);
+          } else if (transaction.type === "expense") {
+            quarterData.expenses += Math.abs(Number(transaction.amount));
+          }
+        }
+      } catch (error) {
+        console.error("Error processing transaction:", transaction, error);
+      }
+    });
+
+    // Calculate savings
+    timeData.forEach((quarterData) => {
+      quarterData.savings = Math.max(
+        0,
+        quarterData.income - quarterData.expenses
+      );
+    });
+
+    return timeData;
+  }
 }
 
 function RouteComponent() {
@@ -128,10 +194,27 @@ function RouteComponent() {
   const [goals, setGoals] = useState<FinancialGoal[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Process transactions into monthly data - only shows months with actual data
-  const monthlyData = useMemo(() => {
-    return processTransactionsToMonthlyData(transactions);
-  }, [transactions]);
+  // State for chart time periods
+  const [areaChartPeriod, setAreaChartPeriod] =
+    useState<TimePeriod>("12months");
+  const [barChartPeriod, setBarChartPeriod] = useState<TimePeriod>("12months");
+
+  // Use realtime notifications hook
+  const { notifications, unreadCount } = useRealtimeNotifications();
+
+  // Process transactions into monthly data for different time periods
+  const areaChartData = useMemo(() => {
+    return processTransactionsToMonthlyData(transactions, areaChartPeriod);
+  }, [transactions, areaChartPeriod]);
+
+  const barChartData = useMemo(() => {
+    return processTransactionsToMonthlyData(transactions, barChartPeriod);
+  }, [transactions, barChartPeriod]);
+
+  // Generate financial tips based on spending patterns
+  const financialTips = useMemo(() => {
+    return generateFinancialTips(transactions, budgets);
+  }, [transactions, budgets]);
 
   // Load data from Supabase
   useEffect(() => {
@@ -151,6 +234,15 @@ function RouteComponent() {
         setTransactions(transactionsData);
         setBudgets(budgetsData);
         setGoals(goalsData);
+
+        // Check for budget alerts
+        if (budgetsData.length > 0 && transactionsData.length > 0) {
+          try {
+            await checkBudgetAlerts(budgetsData, transactionsData);
+          } catch (error) {
+            console.error("Error checking budget alerts:", error);
+          }
+        }
       } catch (error) {
         console.error("Error loading dashboard data:", error);
       } finally {
@@ -215,7 +307,7 @@ function RouteComponent() {
 
             {/* Main Dashboard Tabs */}
             <Tabs defaultValue="overview" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger
                   value="overview"
                   className="flex items-center gap-2"
@@ -241,23 +333,29 @@ function RouteComponent() {
                   <Target className="h-4 w-4" />
                   Ziele
                 </TabsTrigger>
+                <TabsTrigger value="tips" className="flex items-center gap-2">
+                  <Lightbulb className="h-4 w-4" />
+                  Tipps
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <FinancialChart
-                    data={monthlyData}
+                    data={areaChartData}
                     type="area"
-                    title="Finanzübersicht 2024"
+                    title="Finanzentwicklung"
+                    onTimePeriodChange={setAreaChartPeriod}
                   />
                   <RecentTransactions transactions={transactions} />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <FinancialChart
-                    data={monthlyData}
+                    data={barChartData}
                     type="bar"
                     title="Monatliche Übersicht"
+                    onTimePeriodChange={setBarChartPeriod}
                   />
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -344,6 +442,16 @@ function RouteComponent() {
                       <GoalCard key={goal.id} goal={goal} index={index} />
                     ))}
                   </div>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="tips" className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <Lightbulb className="h-5 w-5" />
+                    Finanzielle Tipps
+                  </h3>
+                  <FinancialTipsCard tips={financialTips} />
                 </div>
               </TabsContent>
             </Tabs>

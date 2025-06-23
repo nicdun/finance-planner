@@ -118,13 +118,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TransactionsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dashboard/_components/DashboardHeader': {
-      id: '/dashboard/_components/DashboardHeader'
-      path: ''
-      fullPath: '/dashboard/DashboardHeader'
-      preLoaderRoute: unknown
-      parentRoute: typeof rootRouteImport
-    }
     '/dashboard/education/': {
       id: '/dashboard/education/'
       path: '/dashboard/education'

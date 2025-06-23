@@ -114,15 +114,22 @@ export function FinancialSummary({
       .reduce((sum, account) => sum + Math.min(0, account.balance), 0)
   );
 
-  // Calculate monthly income and expenses
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
+  // Calculate monthly income and expenses for the latest month with data
+  // Find the latest month that has transactions
+  const transactionDates = transactions.map((t) => new Date(t.date));
+  const latestDate =
+    transactionDates.length > 0
+      ? new Date(Math.max(...transactionDates.map((d) => d.getTime())))
+      : new Date();
+
+  const latestMonth = latestDate.getMonth();
+  const latestYear = latestDate.getFullYear();
 
   const monthlyTransactions = transactions.filter((transaction) => {
     const transactionDate = new Date(transaction.date);
     return (
-      transactionDate.getMonth() === currentMonth &&
-      transactionDate.getFullYear() === currentYear
+      transactionDate.getMonth() === latestMonth &&
+      transactionDate.getFullYear() === latestYear
     );
   });
 
@@ -135,6 +142,46 @@ export function FinancialSummary({
       .filter((t) => t.type === "expense")
       .reduce((sum, t) => sum + t.amount, 0)
   );
+
+  // Calculate previous month's data for comparison
+  const previousMonthDate = new Date(latestYear, latestMonth - 1, 1);
+  const previousMonth = previousMonthDate.getMonth();
+  const previousYear = previousMonthDate.getFullYear();
+
+  const previousMonthTransactions = transactions.filter((transaction) => {
+    const transactionDate = new Date(transaction.date);
+    return (
+      transactionDate.getMonth() === previousMonth &&
+      transactionDate.getFullYear() === previousYear
+    );
+  });
+
+  const previousMonthIncome = previousMonthTransactions
+    .filter((t) => t.type === "income")
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const previousMonthExpenses = Math.abs(
+    previousMonthTransactions
+      .filter((t) => t.type === "expense")
+      .reduce((sum, t) => sum + t.amount, 0)
+  );
+
+  // Calculate percentage changes
+  const incomeChange =
+    previousMonthIncome > 0
+      ? (
+          ((monthlyIncome - previousMonthIncome) / previousMonthIncome) *
+          100
+        ).toFixed(1)
+      : null;
+
+  const expenseChange =
+    previousMonthExpenses > 0
+      ? (
+          ((monthlyExpenses - previousMonthExpenses) / previousMonthExpenses) *
+          100
+        ).toFixed(1)
+      : null;
 
   const summaryData = [
     {
@@ -183,6 +230,16 @@ export function FinancialSummary({
         style: "currency",
         currency: "EUR",
       }).format(monthlyIncome),
+      change: incomeChange
+        ? `${
+            parseFloat(incomeChange) > 0 ? "+" : ""
+          }${incomeChange}% vs. letzter Monat`
+        : undefined,
+      changeType: incomeChange
+        ? parseFloat(incomeChange) > 0
+          ? ("positive" as const)
+          : ("negative" as const)
+        : undefined,
       icon: <PiggyBank className="h-4 w-4" />,
     },
     {
@@ -191,8 +248,16 @@ export function FinancialSummary({
         style: "currency",
         currency: "EUR",
       }).format(monthlyExpenses),
-      change: "+8,5% vs. letzter Monat",
-      changeType: "negative" as const,
+      change: expenseChange
+        ? `${
+            parseFloat(expenseChange) > 0 ? "+" : ""
+          }${expenseChange}% vs. letzter Monat`
+        : undefined,
+      changeType: expenseChange
+        ? parseFloat(expenseChange) > 0
+          ? ("negative" as const)
+          : ("positive" as const)
+        : undefined,
       icon: <TrendingDown className="h-4 w-4" />,
     },
   ];

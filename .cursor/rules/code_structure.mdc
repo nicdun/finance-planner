@@ -1,0 +1,12 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Feature sliced design
+- for every implementing feature (or route under `/routes`), create a new directory under `src/features`
+- the structure of each feature directory should contain the following directories, if needed
+    - db: for db integration
+    - ui: for ui components
+    - server: for server side implementation
+    - utils: for utility functions

@@ -37,7 +37,32 @@ export interface FinancialGoal {
 
 export interface MonthlyData {
   month: string;
+  year: number;
   income: number;
   expenses: number;
   savings: number;
+}
+
+export interface AppNotification {
+  id: string;
+  user_id: string;
+  type: "tip" | "budget_alert" | "goal_reminder";
+  title: string;
+  message: string;
+  data: Record<string, any>;
+  is_read: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FinancialTip {
+  id: string;
+  category: string;
+  title: string;
+  description: string;
+  potential_savings: number;
+  priority: "low" | "medium" | "high";
+  icon: string;
+  action_text?: string;
+  action_url?: string;
 }
