@@ -11,6 +11,7 @@ import {
   Gamepad2,
   HomeIcon,
   Loader2,
+  Plus,
   ShoppingCart,
   Utensils,
   Wand2,
@@ -31,6 +32,7 @@ import {
 } from "@/features/transactions/db";
 import { TransactionFilters } from "@/features/transactions/TransactionFilters";
 import { TransactionTable } from "@/features/transactions/TransactionTable";
+import { CreateTransactionDialog } from "@/features/transactions/CreateTransactionDialog";
 import { categorizeTransactions } from "@/lib/categorization";
 import { Account, Transaction } from "@/lib/types";
 
@@ -106,6 +108,7 @@ export function TransactionsPage() {
   // Loading and error states
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showCreateTransaction, setShowCreateTransaction] = useState(false);
 
   // Load data from Supabase
   const loadData = async () => {
@@ -212,6 +215,16 @@ export function TransactionsPage() {
   const handleAutoCategorizeAll = () => {
     const categorizedTransactions = categorizeTransactions(transactions);
     setTransactions(categorizedTransactions);
+  };
+
+  const handleTransactionCreated = async () => {
+    try {
+      // Reload transactions after a new one is created
+      const transactionsData = await getTransactions();
+      setTransactions(transactionsData);
+    } catch (error) {
+      console.error("Error reloading transactions:", error);
+    }
   };
 
   // Get unique categories from transactions
@@ -333,12 +346,35 @@ export function TransactionsPage() {
               transition={{ duration: 0.4 }}
             >
               <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Transaktionen 💰
-                </h2>
-                <p className="text-gray-600">
-                  Alle Ihre Einnahmen und Ausgaben im Überblick
-                </p>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                      Transaktionen 💰
+                    </h2>
+                    <p className="text-gray-600">
+                      Alle Ihre Einnahmen und Ausgaben im Überblick
+                    </p>
+                  </div>
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4, delay: 0.2 }}
+                  >
+                    <Button
+                      onClick={() => setShowCreateTransaction(true)}
+                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+                      disabled={accounts.length === 0}
+                      title={
+                        accounts.length === 0
+                          ? "Fügen Sie zuerst ein Konto hinzu"
+                          : "Neue Transaktion erstellen"
+                      }
+                    >
+                      <Plus className="h-4 w-4" />
+                      Transaktion hinzufügen
+                    </Button>
+                  </motion.div>
+                </div>
               </div>
             </motion.div>
 
@@ -512,6 +548,14 @@ export function TransactionsPage() {
             )}
           </div>
         </main>
+
+        {/* Create Transaction Dialog */}
+        <CreateTransactionDialog
+          open={showCreateTransaction}
+          onOpenChange={setShowCreateTransaction}
+          onTransactionCreated={handleTransactionCreated}
+          accounts={accounts}
+        />
       </div>
     </ProtectedRoute>
   );
