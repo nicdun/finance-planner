@@ -10,7 +10,7 @@ import {
   Target,
   TrendingUp,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { DashboardHeader } from "./-components/DashboardHeader";
 
 // Import dashboard components
@@ -28,15 +28,96 @@ import { getBudgets } from "@/features/budgets/db";
 import { getFinancialGoals } from "@/features/goals/db";
 import { getTransactions } from "@/features/transactions/db";
 
-// Import mock monthly data (still using mock for chart until we have real monthly aggregation)
-import { mockMonthlyData } from "@/lib/mock-data";
-
 // Import types
-import { Account, Budget, FinancialGoal, Transaction } from "@/lib/types";
+import {
+  Account,
+  Budget,
+  FinancialGoal,
+  Transaction,
+  MonthlyData,
+} from "@/lib/types";
 
 export const Route = createFileRoute("/dashboard/")({
   component: RouteComponent,
 });
+
+// Utility function to process transactions into monthly data - shows last 12 months
+function processTransactionsToMonthlyData(
+  transactions: Transaction[]
+): MonthlyData[] {
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mär",
+    "Apr",
+    "Mai",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Okt",
+    "Nov",
+    "Dez",
+  ];
+
+  // Create a simple map to group transactions by month-year
+  const monthlyMap = new Map<
+    string,
+    { income: number; expenses: number; month: string }
+  >();
+
+  // Process each transaction
+  transactions.forEach((transaction) => {
+    try {
+      const date = new Date(transaction.date);
+      const year = date.getFullYear();
+      const month = date.getMonth(); // 0-11
+      const monthKey = `${year}-${month.toString().padStart(2, "0")}`;
+      const monthName = monthNames[month];
+
+      // Initialize month if not exists
+      if (!monthlyMap.has(monthKey)) {
+        monthlyMap.set(monthKey, {
+          income: 0,
+          expenses: 0,
+          month: monthName,
+        });
+      }
+
+      const monthData = monthlyMap.get(monthKey)!;
+
+      // Add to appropriate category
+      if (transaction.type === "income") {
+        monthData.income += Number(transaction.amount);
+      } else if (transaction.type === "expense") {
+        monthData.expenses += Math.abs(Number(transaction.amount));
+      }
+    } catch (error) {
+      console.error("Error processing transaction:", transaction, error);
+    }
+  });
+
+  // Convert map to array and sort chronologically
+  const monthlyArray = Array.from(monthlyMap.entries())
+    .map(([key, data]) => {
+      const [year, month] = key.split("-");
+      return {
+        ...data,
+        year: Number(year),
+        monthIndex: Number(month),
+        sortKey: key,
+      };
+    })
+    .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+    .map((data) => ({
+      month: data.month,
+      income: data.income,
+      expenses: data.expenses,
+      savings: Math.max(0, data.income - data.expenses),
+    }));
+
+  return monthlyArray;
+}
 
 function RouteComponent() {
   // State management for real data
@@ -45,6 +126,11 @@ function RouteComponent() {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [goals, setGoals] = useState<FinancialGoal[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Process transactions into monthly data - only shows months with actual data
+  const monthlyData = useMemo(() => {
+    return processTransactionsToMonthlyData(transactions);
+  }, [transactions]);
 
   // Load data from Supabase
   useEffect(() => {
@@ -159,16 +245,16 @@ function RouteComponent() {
               <TabsContent value="overview" className="space-y-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <FinancialChart
-                    data={mockMonthlyData}
+                    data={monthlyData}
                     type="area"
-                    title="Finanzentwicklung 2024"
+                    title="Finanzübersicht 2024"
                   />
                   <RecentTransactions transactions={transactions} />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <FinancialChart
-                    data={mockMonthlyData}
+                    data={monthlyData}
                     type="bar"
                     title="Monatliche Übersicht"
                   />
