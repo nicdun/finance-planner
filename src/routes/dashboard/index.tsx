@@ -33,7 +33,7 @@ import { createAccount, getAccounts } from "@/features/accounts/db";
 import {
   getBudgetsWithSpending,
   getTopBudgetsWithSpending,
-} from "@/features/budgets/db";
+} from "@/features/budgets/server";
 import { getFinancialGoals } from "@/features/goals/db";
 import { getTransactions } from "@/features/transactions/db";
 import { checkBudgetAlerts } from "@/features/notifications/db";

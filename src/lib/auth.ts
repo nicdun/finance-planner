@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { supabase } from "./supabase";
+import { supabase } from "./supabase/client";
 import type { User, AuthError } from "@supabase/supabase-js";
 
 export interface AuthUser {

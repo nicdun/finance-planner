@@ -1,8 +1,10 @@
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 import { Budget, Transaction } from "@/lib/types";
 
 // Budget functions
-export async function getBudgets(): Promise<Budget[]> {
+export async function getBudgets(request: Request): Promise<Budget[]> {
+  const supabase = await createClient(request);
+
   const { data, error } = await supabase
     .from("budgets")
     .select("*")
@@ -24,8 +26,10 @@ export async function getBudgets(): Promise<Budget[]> {
 }
 
 export async function createBudget(
+  request: Request,
   budget: Omit<Budget, "id">
 ): Promise<Budget> {
+  const supabase = await createClient(request);
   // Get current user
   const {
     data: { user },
@@ -63,9 +67,11 @@ export async function createBudget(
 }
 
 export async function updateBudget(
+  request: Request,
   id: string,
   updates: Partial<Omit<Budget, "id">>
 ): Promise<Budget> {
+  const supabase = await createClient(request);
   const { data, error } = await supabase
     .from("budgets")
     .update({
@@ -97,7 +103,11 @@ export async function updateBudget(
   };
 }
 
-export async function deleteBudget(id: string): Promise<void> {
+export async function deleteBudget(
+  request: Request,
+  id: string
+): Promise<void> {
+  const supabase = await createClient(request);
   const { error } = await supabase.from("budgets").delete().eq("id", id);
 
   if (error) {
@@ -108,9 +118,11 @@ export async function deleteBudget(id: string): Promise<void> {
 
 // Function to calculate monthly spending by category from transactions
 export async function getMonthlySpendingByCategory(
+  request: Request,
   year: number,
   month: number
 ): Promise<Record<string, number>> {
+  const supabase = await createClient(request);
   // Get current user
   const {
     data: { user },
@@ -170,13 +182,16 @@ export async function getMonthlySpendingByCategory(
 
 // Function to get current month spending for a specific category
 export async function getCurrentMonthSpending(
+  request: Request,
   category: string
 ): Promise<number> {
+  // No supabase call here, just calls getMonthlySpendingByCategory
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
 
   const spendingByCategory = await getMonthlySpendingByCategory(
+    request,
     currentYear,
     currentMonth
   );
@@ -184,15 +199,17 @@ export async function getCurrentMonthSpending(
 }
 
 // Enhanced function to get budgets with calculated spending
-export async function getBudgetsWithSpending(): Promise<
-  (Budget & { spentAmount: number })[]
-> {
-  const budgets = await getBudgets();
+export async function getBudgetsWithSpending(
+  request: Request
+): Promise<(Budget & { spentAmount: number })[]> {
+  // No supabase call here, just calls getBudgets and getMonthlySpendingByCategory
+  const budgets = await getBudgets(request);
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1;
 
   const spendingByCategory = await getMonthlySpendingByCategory(
+    request,
     currentYear,
     currentMonth
   );
@@ -204,19 +221,22 @@ export async function getBudgetsWithSpending(): Promise<
 }
 
 // Function to get only top budgets with spending data
-export async function getTopBudgetsWithSpending(): Promise<
-  (Budget & { spentAmount: number })[]
-> {
-  const allBudgets = await getBudgetsWithSpending();
+export async function getTopBudgetsWithSpending(
+  request: Request
+): Promise<(Budget & { spentAmount: number })[]> {
+  // No supabase call here, just calls getBudgetsWithSpending
+  const allBudgets = await getBudgetsWithSpending(request);
   return allBudgets.filter((budget) => budget.isTopBudget);
 }
 
 // Function to toggle top budget status
 export async function toggleTopBudget(
+  request: Request,
   budgetId: string,
   isTopBudget: boolean
 ): Promise<Budget> {
-  return updateBudget(budgetId, { isTopBudget });
+  // No supabase call here, just calls updateBudget
+  return updateBudget(request, budgetId, { isTopBudget });
 }
 
 // Utility function to get budget progress statistics with calculated spending

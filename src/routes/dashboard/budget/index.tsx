@@ -22,9 +22,9 @@ import { Budget } from "@/lib/types";
 import {
   getBudgetsWithSpending,
   deleteBudget,
-  getBudgetProgressStats,
   toggleTopBudget,
-} from "@/features/budgets/db";
+  getBudgetProgressStats,
+} from "@/features/budgets/server";
 import { CreateBudgetDialog } from "@/features/budgets/CreateBudgetDialog";
 import { EditBudgetDialog } from "@/features/budgets/EditBudgetDialog";
 
@@ -65,7 +65,7 @@ function BudgetPage() {
     }
 
     try {
-      await deleteBudget(budgetId);
+      await deleteBudget({ data: budgetId });
       await loadBudgets();
     } catch (err) {
       console.error("Error deleting budget:", err);
@@ -88,7 +88,9 @@ function BudgetPage() {
     currentStatus: boolean
   ) => {
     try {
-      await toggleTopBudget(budgetId, !currentStatus);
+      await toggleTopBudget({
+        data: { budgetId, isTopBudget: !currentStatus },
+      });
       await loadBudgets();
     } catch (err) {
       console.error("Error toggling top budget:", err);

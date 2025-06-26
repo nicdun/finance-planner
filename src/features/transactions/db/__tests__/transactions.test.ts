@@ -22,7 +22,7 @@ import {
   bulkUpdateTransactionCategories,
   deleteTransaction,
 } from "../transactions";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 
 describe("Transactions Database Functions", () => {
   beforeEach(() => {

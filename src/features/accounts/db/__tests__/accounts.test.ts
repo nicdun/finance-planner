@@ -21,7 +21,7 @@ import {
   updateAccount,
   deleteAccount,
 } from "../accounts";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 
 describe("Accounts Database Functions", () => {
   beforeEach(() => {

@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createBudget } from "@/features/budgets/db";
+import { createBudget } from "@/features/budgets/server";
 import { Budget } from "@/lib/types";
 
 interface CreateBudgetDialogProps {
@@ -94,7 +94,7 @@ export function CreateBudgetDialog({
         color: data.color,
       };
 
-      await createBudget(budgetData);
+      await createBudget({ data: budgetData });
 
       form.reset();
       onBudgetCreated();

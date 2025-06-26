@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { updateBudget } from "@/features/budgets/db";
+import { updateBudget } from "@/features/budgets/server";
 import { Budget } from "@/lib/types";
 
 interface EditBudgetDialogProps {
@@ -106,7 +106,7 @@ export function EditBudgetDialog({
         color: data.color,
       };
 
-      await updateBudget(budget.id, updates);
+      await updateBudget({ data: { id: budget.id, updates } });
 
       onBudgetUpdated();
     } catch (error) {

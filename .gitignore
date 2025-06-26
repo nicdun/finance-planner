@@ -133,4 +133,4 @@ temp/
 .tanstack/
 
 # Custom temp files
-count.txt
+.env
