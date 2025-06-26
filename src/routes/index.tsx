@@ -146,7 +146,7 @@ export function Home() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Link to="/dashboard">
+              <Link to="/login">
                 <Button
                   className="bg-blue-600 hover:bg-blue-700"
                   disabled={loading}

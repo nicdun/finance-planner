@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -23,13 +24,21 @@ import {
 } from "lucide-react";
 
 export function AuthForm() {
-  const { signIn, signUp, loading, error } = useAuth();
+  const { signIn, signUp, loading, error, user } = useAuth();
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "test@example.com", // Pre-filled for test user
     password: "test123", // Pre-filled for test user
   });
   const [localError, setLocalError] = useState<string | null>(null);
+
+  // Redirect to dashboard after successful login
+  useEffect(() => {
+    if (user) {
+      router.navigate({ to: "/dashboard" });
+    }
+  }, [user, router]);
 
   const handleSubmit = async (
     e: React.FormEvent,

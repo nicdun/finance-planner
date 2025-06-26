@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { AppNotification } from "@/lib/types";
 import { getUnreadNotifications } from "@/features/notifications/db";
@@ -7,11 +7,21 @@ export function useRealtimeNotifications() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Ref to prevent double execution in React StrictMode
+  const hasInitialized = useRef(false);
+
   useEffect(() => {
+    // Prevent double execution in React StrictMode
+    if (hasInitialized.current) {
+      return;
+    }
+
     let channel: any = null;
 
     const initializeNotifications = async () => {
       try {
+        hasInitialized.current = true;
+
         // Get current user
         const {
           data: { user },
@@ -79,6 +89,8 @@ export function useRealtimeNotifications() {
         }
       } catch (error) {
         console.error("Error initializing notifications:", error);
+        // Reset the flag on error so we can retry
+        hasInitialized.current = false;
       } finally {
         setLoading(false);
       }

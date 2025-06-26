@@ -1,7 +1,6 @@
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
   BarChart3,
@@ -12,8 +11,9 @@ import {
   Target,
   TrendingUp,
 } from "lucide-react";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { DashboardHeader } from "./-components/DashboardHeader";
+import { auth } from "@/lib/auth";
 
 // Import dashboard components
 import { BankConnection } from "@/features/banking/BankConnection";
@@ -53,6 +53,15 @@ import { generateFinancialTips } from "@/lib/financial-tips";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 
 export const Route = createFileRoute("/dashboard/")({
+  beforeLoad: async () => {
+    const user = await auth.getCurrentUser();
+    if (!user) {
+      throw redirect({
+        to: "/login",
+      });
+    }
+    return { user };
+  },
   component: RouteComponent,
 });
 
@@ -200,6 +209,9 @@ function RouteComponent() {
   const [goals, setGoals] = useState<FinancialGoal[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Ref to prevent double execution in React StrictMode
+  const hasLoadedData = useRef(false);
+
   // State for chart time periods
   const [areaChartPeriod, setAreaChartPeriod] =
     useState<TimePeriod>("12months");
@@ -224,9 +236,15 @@ function RouteComponent() {
 
   // Load data from Supabase
   useEffect(() => {
+    // Prevent double execution in React StrictMode
+    if (hasLoadedData.current) {
+      return;
+    }
+
     const loadData = async () => {
       try {
         setLoading(true);
+        hasLoadedData.current = true;
 
         const [
           accountsData,
@@ -258,6 +276,8 @@ function RouteComponent() {
         }
       } catch (error) {
         console.error("Error loading dashboard data:", error);
+        // Reset the flag on error so we can retry
+        hasLoadedData.current = false;
       } finally {
         setLoading(false);
       }
@@ -287,214 +307,208 @@ function RouteComponent() {
   }
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-        <DashboardHeader onAccountAdded={handleAccountAdded} />
+    <div className="min-h-screen bg-gray-50">
+      <DashboardHeader onAccountAdded={handleAccountAdded} />
 
-        {/* Main Content */}
-        <main className="p-3 sm:p-6">
-          <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-            {/* Welcome Section */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Willkommen zurück! 👋
-                </h2>
-                <p className="text-gray-600">
-                  Hier ist Ihre aktuelle Finanzübersicht für{" "}
-                  {new Date().toLocaleDateString("de-DE", {
-                    month: "long",
-                    year: "numeric",
-                  })}
-                  .
-                </p>
+      {/* Main Content */}
+      <main className="p-3 sm:p-6">
+        <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+          {/* Welcome Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Willkommen zurück! 👋
+              </h2>
+              <p className="text-gray-600">
+                Hier ist Ihre aktuelle Finanzübersicht für{" "}
+                {new Date().toLocaleDateString("de-DE", {
+                  month: "long",
+                  year: "numeric",
+                })}
+                .
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Financial Summary */}
+          <FinancialSummary accounts={accounts} transactions={transactions} />
+
+          {/* Main Dashboard Tabs */}
+          <Tabs defaultValue="overview" className="space-y-6">
+            <div className="overflow-x-auto">
+              <TabsList className="grid w-full grid-cols-5 md:grid-cols-5 min-w-fit">
+                <TabsTrigger
+                  value="overview"
+                  className="flex items-center gap-1 md:gap-2 px-2 md:px-4 whitespace-nowrap"
+                >
+                  <BarChart3 className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Übersicht</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="accounts"
+                  className="flex items-center gap-1 md:gap-2 px-2 md:px-4 whitespace-nowrap"
+                >
+                  <CreditCard className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Konten</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="budgets"
+                  className="flex items-center gap-1 md:gap-2 px-2 md:px-4 whitespace-nowrap"
+                >
+                  <PieChart className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Budgets</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="goals"
+                  className="flex items-center gap-1 md:gap-2 px-2 md:px-4 whitespace-nowrap"
+                >
+                  <Target className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Ziele</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="tips"
+                  className="flex items-center gap-1 md:gap-2 px-2 md:px-4 whitespace-nowrap"
+                >
+                  <Lightbulb className="h-4 w-4 flex-shrink-0" />
+                  <span className="hidden sm:inline">Tipps</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="overview" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <FinancialChart
+                  data={areaChartData}
+                  type="area"
+                  title="Finanzentwicklung"
+                  onTimePeriodChange={setAreaChartPeriod}
+                />
+                <RecentTransactions transactions={transactions} />
               </div>
-            </motion.div>
 
-            {/* Financial Summary */}
-            <FinancialSummary accounts={accounts} transactions={transactions} />
-
-            {/* Main Dashboard Tabs */}
-            <Tabs defaultValue="overview" className="space-y-6">
-              <div className="overflow-x-auto">
-                <TabsList className="grid w-full grid-cols-5 md:grid-cols-5 min-w-fit">
-                  <TabsTrigger
-                    value="overview"
-                    className="flex items-center gap-1 md:gap-2 px-2 md:px-4 whitespace-nowrap"
-                  >
-                    <BarChart3 className="h-4 w-4 flex-shrink-0" />
-                    <span className="hidden sm:inline">Übersicht</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="accounts"
-                    className="flex items-center gap-1 md:gap-2 px-2 md:px-4 whitespace-nowrap"
-                  >
-                    <CreditCard className="h-4 w-4 flex-shrink-0" />
-                    <span className="hidden sm:inline">Konten</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="budgets"
-                    className="flex items-center gap-1 md:gap-2 px-2 md:px-4 whitespace-nowrap"
-                  >
-                    <PieChart className="h-4 w-4 flex-shrink-0" />
-                    <span className="hidden sm:inline">Budgets</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="goals"
-                    className="flex items-center gap-1 md:gap-2 px-2 md:px-4 whitespace-nowrap"
-                  >
-                    <Target className="h-4 w-4 flex-shrink-0" />
-                    <span className="hidden sm:inline">Ziele</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="tips"
-                    className="flex items-center gap-1 md:gap-2 px-2 md:px-4 whitespace-nowrap"
-                  >
-                    <Lightbulb className="h-4 w-4 flex-shrink-0" />
-                    <span className="hidden sm:inline">Tipps</span>
-                  </TabsTrigger>
-                </TabsList>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <FinancialChart
+                  data={barChartData}
+                  type="bar"
+                  title="Monatliche Übersicht"
+                  onTimePeriodChange={setBarChartPeriod}
+                />
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Top Budgets
+                  </h3>
+                  <div className="space-y-3">
+                    {topBudgets.length > 0 ? (
+                      topBudgets.map((budget, index) => (
+                        <BudgetCard
+                          key={budget.id}
+                          budget={budget}
+                          index={index}
+                        />
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <p className="text-sm">Keine Top-Budgets markiert</p>
+                        <p className="text-xs">
+                          Markieren Sie Budgets auf der Budget-Seite als
+                          Favoriten
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
+            </TabsContent>
 
-              <TabsContent value="overview" className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <FinancialChart
-                    data={areaChartData}
-                    type="area"
-                    title="Finanzentwicklung"
-                    onTimePeriodChange={setAreaChartPeriod}
-                  />
-                  <RecentTransactions transactions={transactions} />
+            <TabsContent value="accounts" className="space-y-6">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <CreditCard className="h-5 w-5" />
+                    Ihre Konten
+                  </h3>
+                  <BankConnection onAccountAdded={handleAccountAdded} />
                 </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <FinancialChart
-                    data={barChartData}
-                    type="bar"
-                    title="Monatliche Übersicht"
-                    onTimePeriodChange={setBarChartPeriod}
-                  />
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <TrendingUp className="h-5 w-5" />
-                      Top Budgets
-                    </h3>
-                    <div className="space-y-3">
-                      {topBudgets.length > 0 ? (
-                        topBudgets.map((budget, index) => (
-                          <BudgetCard
-                            key={budget.id}
-                            budget={budget}
-                            index={index}
-                          />
-                        ))
-                      ) : (
-                        <div className="text-center py-8 text-gray-500">
-                          <p className="text-sm">Keine Top-Budgets markiert</p>
-                          <p className="text-xs">
-                            Markieren Sie Budgets auf der Budget-Seite als
-                            Favoriten
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {accounts.map((account, index) => (
+                    <AccountCard
+                      key={account.id}
+                      account={account}
+                      index={index}
+                    />
+                  ))}
                 </div>
-              </TabsContent>
-
-              <TabsContent value="accounts" className="space-y-6">
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <CreditCard className="h-5 w-5" />
-                      Ihre Konten
+                {accounts.length === 0 && (
+                  <motion.div
+                    className="text-center py-12"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold text-gray-600 mb-2">
+                      Noch keine Konten verbunden
                     </h3>
-                    <BankConnection onAccountAdded={handleAccountAdded} />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {accounts.map((account, index) => (
-                      <AccountCard
-                        key={account.id}
-                        account={account}
-                        index={index}
-                      />
-                    ))}
-                  </div>
-                  {accounts.length === 0 && (
-                    <motion.div
-                      className="text-center py-12"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                    >
-                      <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-gray-600 mb-2">
-                        Noch keine Konten verbunden
-                      </h3>
-                      <p className="text-gray-500 mb-4">
-                        Verbinden Sie Ihr erstes Bankkonto, um Ihre Finanzen zu
-                        verwalten.
-                      </p>
-                      <BankConnection onAccountAdded={handleAccountAdded} />
-                    </motion.div>
-                  )}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="budgets" className="space-y-6">
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold flex items-center gap-2">
-                      <PieChart className="h-5 w-5" />
-                      Budget-Übersicht
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {topBudgets.length} von {budgets.length} als Top-Budget
-                      markiert
+                    <p className="text-gray-500 mb-4">
+                      Verbinden Sie Ihr erstes Bankkonto, um Ihre Finanzen zu
+                      verwalten.
                     </p>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {budgets.map((budget, index) => (
-                      <BudgetCard
-                        key={budget.id}
-                        budget={budget}
-                        index={index}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </TabsContent>
+                    <BankConnection onAccountAdded={handleAccountAdded} />
+                  </motion.div>
+                )}
+              </div>
+            </TabsContent>
 
-              <TabsContent value="goals" className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Target className="h-5 w-5" />
-                    Finanzielle Ziele
+            <TabsContent value="budgets" className="space-y-6">
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <PieChart className="h-5 w-5" />
+                    Budget-Übersicht
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {goals.map((goal, index) => (
-                      <GoalCard key={goal.id} goal={goal} index={index} />
-                    ))}
-                  </div>
+                  <p className="text-sm text-gray-600">
+                    {topBudgets.length} von {budgets.length} als Top-Budget
+                    markiert
+                  </p>
                 </div>
-              </TabsContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {budgets.map((budget, index) => (
+                    <BudgetCard key={budget.id} budget={budget} index={index} />
+                  ))}
+                </div>
+              </div>
+            </TabsContent>
 
-              <TabsContent value="tips" className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <Lightbulb className="h-5 w-5" />
-                    Finanzielle Tipps
-                  </h3>
-                  <FinancialTipsCard tips={financialTips} />
+            <TabsContent value="goals" className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Target className="h-5 w-5" />
+                  Finanzielle Ziele
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {goals.map((goal, index) => (
+                    <GoalCard key={goal.id} goal={goal} index={index} />
+                  ))}
                 </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </main>
-      </div>
-    </ProtectedRoute>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="tips" className="space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Lightbulb className="h-5 w-5" />
+                  Finanzielle Tipps
+                </h3>
+                <FinancialTipsCard tips={financialTips} />
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </main>
+    </div>
   );
 }

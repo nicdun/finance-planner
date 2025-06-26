@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TransactionsIndexRouteImport } from './routes/transactions/index'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
@@ -16,6 +17,11 @@ import { Route as DashboardGoalsIndexRouteImport } from './routes/dashboard/goal
 import { Route as DashboardEducationIndexRouteImport } from './routes/dashboard/education/index'
 import { Route as DashboardBudgetIndexRouteImport } from './routes/dashboard/budget/index'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -49,6 +55,7 @@ const DashboardBudgetIndexRoute = DashboardBudgetIndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
   '/dashboard': typeof DashboardIndexRoute
   '/transactions': typeof TransactionsIndexRoute
   '/dashboard/budget': typeof DashboardBudgetIndexRoute
@@ -57,6 +64,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
   '/dashboard': typeof DashboardIndexRoute
   '/transactions': typeof TransactionsIndexRoute
   '/dashboard/budget': typeof DashboardBudgetIndexRoute
@@ -66,6 +74,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
   '/dashboard/': typeof DashboardIndexRoute
   '/transactions/': typeof TransactionsIndexRoute
   '/dashboard/budget/': typeof DashboardBudgetIndexRoute
@@ -76,6 +85,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/login'
     | '/dashboard'
     | '/transactions'
     | '/dashboard/budget'
@@ -84,6 +94,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/login'
     | '/dashboard'
     | '/transactions'
     | '/dashboard/budget'
@@ -92,6 +103,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/login'
     | '/dashboard/'
     | '/transactions/'
     | '/dashboard/budget/'
@@ -101,6 +113,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LoginRoute: typeof LoginRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   TransactionsIndexRoute: typeof TransactionsIndexRoute
   DashboardBudgetIndexRoute: typeof DashboardBudgetIndexRoute
@@ -115,6 +128,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard/': {
@@ -164,6 +184,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LoginRoute: LoginRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   TransactionsIndexRoute: TransactionsIndexRoute,
   DashboardBudgetIndexRoute: DashboardBudgetIndexRoute,
