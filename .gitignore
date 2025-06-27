@@ -17,6 +17,7 @@ node_modules/
 .vuepress/dist
 .serverless/
 .vercel/
+.output/
 
 # Runtime data
 pids
