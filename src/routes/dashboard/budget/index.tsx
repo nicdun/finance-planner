@@ -29,21 +29,26 @@ import { CreateBudgetDialog } from "@/features/budgets/CreateBudgetDialog";
 import { EditBudgetDialog } from "@/features/budgets/EditBudgetDialog";
 
 export const Route = createFileRoute("/dashboard/budget/")({
+  loader: async () => {
+    const budgets = await getBudgetsWithSpending();
+    return budgets;
+  },
   component: BudgetPage,
 });
 
 function BudgetPage() {
+  const initialBudgets = Route.useLoaderData();
   const [budgets, setBudgets] = useState<(Budget & { spentAmount: number })[]>(
-    []
+    initialBudgets || []
   );
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
 
-  useEffect(() => {
-    loadBudgets();
-  }, []);
+  // useEffect(() => {
+  //   loadBudgets();
+  // }, []);
 
   const loadBudgets = async () => {
     try {
